@@ -83,7 +83,9 @@ def predict(
     if model_path and os.path.exists(model_path):
         checkpoint = torch.load(model_path, map_location=device)
         classifier.load_state_dict(checkpoint["model_state_dict"])
-        saved_threshold = checkpoint.get("threshold", 0.5)
+        loaded_th = checkpoint.get("threshold", 0.5)
+        if loaded_th is not None and loaded_th > 0.0:
+            saved_threshold = loaded_th
     else:
         print(f" Warning: Trained model checkpoint '{model_path}' not found. Using initialized MLP weights for demo.")
         

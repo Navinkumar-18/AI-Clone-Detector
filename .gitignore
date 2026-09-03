@@ -46,3 +46,30 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Python / Machine Learning related
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# ML Models & Data
+*.h5
+*.keras
+*.pkl
+*.pth
+*.pt
+
+# Project-specific data folders
+data/
+models/
+temp_test_audio/
