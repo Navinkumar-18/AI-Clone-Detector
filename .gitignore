@@ -1,132 +1,153 @@
-# Miscellaneous & OS
-*.class
-*.log
-*.swp
-*~
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Desktop.ini
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# Editors & IDEs
-*.iml
-*.ipr
-*.iws
-.idea/
-.vscode/
-
-# Flutter / Dart / Pub
+# ============================================================
+# Flutter / Dart
+# ============================================================
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-.packages
-/build/
-/coverage/
-**/doc/api/
-.widget_preview/
+build/
+*.dart.js
+*.dart.js.deps
+*.dart.js.map
+*.info.json
+*.js
+*.js_
+*.js.deps
+*.js.map
 
+# Dart analysis/IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Flutter generated files (keep pubspec.lock for reproducibility,
+# but ignore if you treat deps as lockfile-free)
+# pubspec.lock  ← intentionally tracked
+
+# ============================================================
 # Android
-**/android/app/debug
-**/android/app/profile
-**/android/app/release
-**/android/app/src/main/assets/
-**/android/app/src/main/jniLibs/
-**/android/.gradle/
-**/android/captures/
-**/android/local.properties
-**/android/key.properties
-**/android/app/gservices.json
-**/android/app/google-services.json
+# ============================================================
+android/build/
+android/.gradle/
+android/captures/
+android/local.properties
+android/key.properties
+*.keystore
+*.jks
 
+# ============================================================
 # iOS / macOS
-**/ios/Flutter/.last_build_id
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/flutter_export_environment.sh
-**/ios/Runner/GeneratedPluginRegistrant.h
-**/ios/Runner/GeneratedPluginRegistrant.m
-**/ios/.generated/
-**/macos/Flutter/ephemeral/
+# ============================================================
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+macos/Pods/
+macos/.symlinks/
+macos/Flutter/ephemeral/
+*.xcworkspace
+Podfile.lock
 
-# Linux / Windows
-**/linux/flutter/ephemeral/
-**/windows/flutter/ephemeral/
-
-# Symbolication & Obfuscation
-app.*.symbols
-app.*.map.json
-
-# Python & Virtual Environments
+# ============================================================
+# Python
+# ============================================================
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.pytest_cache/
-.mypy_cache/
-.coverage
-htmlcov/
+*.pyo
+*.pyd
+
+# Virtual environments
 venv/
 .venv/
 env/
-.env
-.env.*
-*.env
+.env/
+ENV/
 
-# Jupyter Notebooks
+# Distribution / packaging
+dist/
+*.egg-info/
+*.egg
+.eggs/
+wheels/
+
+# Jupyter / IPython
 .ipynb_checkpoints/
+*.ipynb_checkpoints
 
-# Machine Learning Models, Checkpoints & Arrays
-*.h5
-*.keras
-*.pkl
-*.pth
-*.pt
-*.onnx
-*.tflite
-*.joblib
-*.sav
-*.ckpt
-*.safetensors
-*.bin
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# mypy / pyright type checking caches
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+# ============================================================
+# ML / Data Science — large artifacts
+# ============================================================
+# Raw & processed datasets (can be multi-GB)
+data/
+
+# Trained model checkpoints & weights
+# models/*.pt
+# models/*.pth
+# models/*.joblib
+# models/*.pkl
+# ↑ Uncomment above lines if you don't want to push model files.
+#   Currently keeping models/ tracked (small checkpoint ~400 KB).
+
+# Temp audio recordings used during testing
+temp_test_audio/
+
+# Feature cache files
 *.npy
 *.npz
+*.h5
+*.hdf5
+*.feather
+*.parquet
 
-# Project Data & Audio Files
-data/
-models/
-temp_test_audio/
-dataset/
-datasets/
-temp/
-tmp/
+# Experiment tracking
+mlruns/
+wandb/
+lightning_logs/
 
-# Audio & Media Files
-*.wav
-*.mp3
-*.flac
-*.ogg
-*.m4a
-*.aac
-*.opus
-*.wma
+# ============================================================
+# General
+# ============================================================
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Compressed Archives
+# Logs
+*.log
+logs/
+
+# Secrets / env files
+.env
+*.env
+secrets.json
+config.local.*
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Archives
 *.zip
-*.tar
 *.tar.gz
-*.tgz
 *.rar
-*.7z
-*.gz

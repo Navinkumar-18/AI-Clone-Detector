@@ -113,11 +113,11 @@ class _HomeScreenState extends State<HomeScreen>
     // 2. Build a temp file path.
     final tmpDir = await getTemporaryDirectory();
     _recordingPath =
-        '${tmpDir.path}/voiceguard_rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        '${tmpDir.path}/voiceguard_rec_${DateTime.now().millisecondsSinceEpoch}.wav';
 
     // 3. Start recording.
     await _recorder.start(
-      const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 128000),
+      const RecordConfig(encoder: AudioEncoder.wav, bitRate: 128000),
       path: _recordingPath!,
     );
     setState(() => _screen = _ScreenState.recording);
