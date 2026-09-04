@@ -103,7 +103,7 @@ cells.append(cell(textwrap.dedent("""\
             if key not in ['bonafide', 'spoof']:
                 key = 'spoof'
     
-            lines_out.append(spk + ' ' + stem + ' - ' + sid + ' ' + key)
+            lines_out.append(f"{spk} {stem} - {sid} {key}")
     
             if stem not in existing_set:
                 out_path = os.path.join(audio_dir, stem + '.flac')
@@ -118,12 +118,12 @@ cells.append(cell(textwrap.dedent("""\
                 rate = saved / max(elapsed, 1)
                 rem = (expected - saved) / max(rate, 0.01)
                 print(f'  {saved}/{expected} | {rate:.0f} f/s | ~{rem/60:.0f} min left')
-                with open(proto_path + '.partial', 'w') as pf:
-                    pf.write('\\n'.join(lines_out) + '\\n')
+                with open(proto_path + '.partial', 'w', encoding='utf-8') as pf:
+                    pf.write("\\n".join(lines_out) + "\\n")
     
         pbar.close()
         with open(proto_path, 'w', encoding='utf-8') as fout:
-            fout.write('\\n'.join(lines_out) + '\\n')
+            fout.write("\\n".join(lines_out) + "\\n")
         if os.path.exists(proto_path + '.partial'):
             os.remove(proto_path + '.partial')
         elapsed = time.time() - t0

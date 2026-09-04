@@ -1,122 +1,608 @@
+// main.dart — VoiceGuard app entry point and HomeScreen widget.
+//
+// API logic lives in api_client.dart.
+// Backend URL and timeout constants live in config.dart.
+
+import 'dart:async';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+import 'api_client.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+// ---------------------------------------------------------------------------
+// App root
+// ---------------------------------------------------------------------------
 
-  // This widget is the root of your application.
+void main() => runApp(const VoiceGuardApp());
+
+class VoiceGuardApp extends StatelessWidget {
+  const VoiceGuardApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'VoiceGuard',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1565C0),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HomeScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+// ---------------------------------------------------------------------------
+// State enum
+// ---------------------------------------------------------------------------
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+enum _ScreenState { idle, recording, loading, result, error }
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+// ---------------------------------------------------------------------------
+// HomeScreen
+// ---------------------------------------------------------------------------
 
-  final String title;
-
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  // -- state --
+  _ScreenState _screen = _ScreenState.idle;
+  PredictResult? _result;
+  String _errorMessage = '';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  // -- recording --
+  final AudioRecorder _recorder = AudioRecorder();
+  String? _recordingPath;
+  late AnimationController _pulseCtrl;
+  late Animation<double> _pulseAnim;
+
+  // ---------------------------------------------------------------------------
+  // Lifecycle
+  // ---------------------------------------------------------------------------
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
+    _pulseAnim = Tween<double>(begin: 0.5, end: 1.0).animate(_pulseCtrl);
   }
 
   @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+  void dispose() {
+    _pulseCtrl.dispose();
+    _recorder.dispose();
+    super.dispose();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Upload flow
+  // ---------------------------------------------------------------------------
+
+  Future<void> _pickAndAnalyze() async {
+    final picked = await FilePicker.platform.pickFiles(type: FileType.audio);
+    if (picked == null) return; // user cancelled
+    await _runPrediction(picked.files.single.path!);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Recording flow
+  // ---------------------------------------------------------------------------
+
+  Future<void> _startRecording() async {
+    // 1. Check / request microphone permission.
+    final hasPermission = await _recorder.hasPermission();
+    if (!hasPermission) {
+      _showPermissionDeniedDialog();
+      return;
+    }
+
+    // 2. Build a temp file path.
+    final tmpDir = await getTemporaryDirectory();
+    _recordingPath =
+        '${tmpDir.path}/voiceguard_rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+    // 3. Start recording.
+    await _recorder.start(
+      const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 128000),
+      path: _recordingPath!,
+    );
+    setState(() => _screen = _ScreenState.recording);
+  }
+
+  Future<void> _stopRecordingAndAnalyze() async {
+    final path = await _recorder.stop();
+    if (path == null || path.isEmpty) {
+      setState(() {
+        _screen = _ScreenState.error;
+        _errorMessage = 'Recording failed — no audio was captured.';
+      });
+      return;
+    }
+    await _runPrediction(path);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Shared prediction call
+  // ---------------------------------------------------------------------------
+
+  Future<void> _runPrediction(String filePath) async {
+    setState(() {
+      _screen = _ScreenState.loading;
+      _result = null;
+      _errorMessage = '';
+    });
+
+    try {
+      final result = await VoiceGuardApiClient.predict(filePath);
+      setState(() {
+        _screen = _ScreenState.result;
+        _result = result;
+      });
+    } on BackendUnreachableException {
+      setState(() {
+        _screen = _ScreenState.error;
+        _errorMessage =
+            'Cannot reach the server.\n\nMake sure the backend is running and the URL in config.dart is correct.';
+      });
+    } on UnsupportedFileException {
+      setState(() {
+        _screen = _ScreenState.error;
+        _errorMessage =
+            'This file could not be analysed.\n\nPlease use a supported audio format (WAV, MP3, M4A, FLAC).';
+      });
+    } on BackendErrorException catch (e) {
+      setState(() {
+        _screen = _ScreenState.error;
+        _errorMessage = 'The server returned an error (HTTP ${e.statusCode}).\n\nTry again or check backend logs.';
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Reset
+  // ---------------------------------------------------------------------------
+
+  void _reset() {
+    setState(() {
+      _screen = _ScreenState.idle;
+      _result = null;
+      _errorMessage = '';
+      _recordingPath = null;
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Permission denied dialog
+  // ---------------------------------------------------------------------------
+
+  void _showPermissionDeniedDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Microphone Access Required'),
+        content: const Text(
+          'VoiceGuard needs microphone access to record audio.\n\n'
+          'Please grant the permission in your device settings and try again.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1565C0),
+        foregroundColor: Colors.white,
+        elevation: 2,
+        title: const Row(
           children: [
-            const Text('You have pushed the button this many times:'),
+            Icon(Icons.shield_outlined, size: 22),
+            SizedBox(width: 8),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'VoiceGuard',
+              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
             ),
           ],
         ),
+        actions: [
+          if (_screen == _ScreenState.result || _screen == _ScreenState.error)
+            TextButton.icon(
+              onPressed: _reset,
+              icon: const Icon(Icons.refresh, color: Colors.white70),
+              label: const Text(
+                'Reset',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: _buildBody(),
+        ),
       ),
+    );
+  }
+
+  Widget _buildBody() {
+    return switch (_screen) {
+      _ScreenState.idle => _buildIdleView(),
+      _ScreenState.recording => _buildRecordingView(),
+      _ScreenState.loading => _buildLoadingView(),
+      _ScreenState.result => _buildResultView(),
+      _ScreenState.error => _buildErrorView(),
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Idle view
+  // ---------------------------------------------------------------------------
+
+  Widget _buildIdleView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.graphic_eq, size: 72, color: Color(0xFF1565C0)),
+        const SizedBox(height: 16),
+        const Text(
+          'Detect AI-Generated Voice',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1A237E),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Upload an audio clip or record your voice\nto check if it is genuine or synthetic.',
+          style: TextStyle(color: Colors.black54, height: 1.5),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 40),
+        Row(
+          children: [
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.upload_file,
+                label: 'Upload Clip',
+                onPressed: _pickAndAnalyze,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.mic,
+                label: 'Record',
+                onPressed: _startRecording,
+                color: const Color(0xFFC62828),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Recording view
+  // ---------------------------------------------------------------------------
+
+  Widget _buildRecordingView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        FadeTransition(
+          opacity: _pulseAnim,
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: const BoxDecoration(
+              color: Color(0xFFC62828),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.mic, color: Colors.white, size: 40),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          'Recording…',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFC62828),
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Speak now. Tap Stop when you are done.',
+          style: TextStyle(color: Colors.black54),
+        ),
+        const SizedBox(height: 40),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFC62828),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          onPressed: _stopRecordingAndAnalyze,
+          icon: const Icon(Icons.stop),
+          label: const Text('Stop & Analyse'),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Loading view
+  // ---------------------------------------------------------------------------
+
+  Widget _buildLoadingView() {
+    return const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CircularProgressIndicator(
+          color: Color(0xFF1565C0),
+          strokeWidth: 3,
+        ),
+        SizedBox(height: 24),
+        Text(
+          'Analysing…',
+          style: TextStyle(
+            fontSize: 18,
+            color: Color(0xFF1565C0),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          'Sending audio to the detection model.',
+          style: TextStyle(color: Colors.black45),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Result view
+  // ---------------------------------------------------------------------------
+
+  Widget _buildResultView() {
+    final r = _result!;
+    final color = _riskColor(r.riskLevel);
+    final isSpoof = r.label == 'spoof';
+    final pct = (r.confidence * 100).toStringAsFixed(1);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // ── Main verdict card ──────────────────────────────────────────────
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            border: Border.all(color: color.withValues(alpha: 0.4), width: 2),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            children: [
+              // Verdict icon
+              Icon(
+                isSpoof ? Icons.warning_rounded : Icons.verified_user,
+                size: 64,
+                color: color,
+              ),
+              const SizedBox(height: 12),
+
+              // BONAFIDE / SPOOF label — large, readable from across a table
+              Text(
+                r.label.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w900,
+                  color: color,
+                  letterSpacing: 2,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Risk level badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'RISK: ${r.riskLevel.toUpperCase()}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+
+              // Confidence section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Confidence',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    '$pct%',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: r.confidence,
+                  minHeight: 14,
+                  backgroundColor: color.withValues(alpha: 0.15),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 32),
+
+        // ── Reset button ───────────────────────────────────────────────────
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: const BorderSide(color: Color(0xFF1565C0), width: 1.5),
+              foregroundColor: const Color(0xFF1565C0),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onPressed: _reset,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Check Another Clip'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Error view
+  // ---------------------------------------------------------------------------
+
+  Widget _buildErrorView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.error_outline, size: 64, color: Color(0xFFC62828)),
+        const SizedBox(height: 20),
+        const Text(
+          'Something went wrong',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFC62828),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          _errorMessage,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.black54, height: 1.5, fontSize: 15),
+        ),
+        const SizedBox(height: 36),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1565C0),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+          ),
+          onPressed: _reset,
+          icon: const Icon(Icons.arrow_back),
+          label: const Text('Try Again'),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  /// Returns a readable color for each risk level.
+  /// DESIGN DECISION — verify these values are legible on your demo screen.
+  Color _riskColor(String level) {
+    return switch (level) {
+      'high' => const Color(0xFFC62828),   // dark red
+      'medium' => const Color(0xFFE65100), // deep orange
+      _ => const Color(0xFF2E7D32),        // dark green (low / unknown)
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Reusable action button
+// ---------------------------------------------------------------------------
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+  final Color color;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.color = const Color(0xFF1565C0),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 2,
+        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+      ),
+      onPressed: onPressed,
+      icon: Icon(icon, size: 22),
+      label: Text(label),
     );
   }
 }

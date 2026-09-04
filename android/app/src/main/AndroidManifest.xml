@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Microphone access — required by the `record` package -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Internet access — required for HTTP calls to the backend -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="sih2026"
+        android:label="VoiceGuard"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

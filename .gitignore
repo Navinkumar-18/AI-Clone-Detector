@@ -1,9 +1,16 @@
-# Miscellaneous
+# Miscellaneous & OS
 *.class
 *.log
-*.pyc
 *.swp
+*~
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
 .atom/
 .build/
 .buildlog/
@@ -12,64 +19,114 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# Editors & IDEs
 *.iml
 *.ipr
 *.iws
 .idea/
+.vscode/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Flutter / Dart / Pub
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
+.packages
 /build/
 /coverage/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# Widget Preview related
+**/doc/api/
 .widget_preview/
 
-# Python / Machine Learning related
+# Android
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+**/android/app/src/main/assets/
+**/android/app/src/main/jniLibs/
+**/android/.gradle/
+**/android/captures/
+**/android/local.properties
+**/android/key.properties
+**/android/app/gservices.json
+**/android/app/google-services.json
+
+# iOS / macOS
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Runner/GeneratedPluginRegistrant.h
+**/ios/Runner/GeneratedPluginRegistrant.m
+**/ios/.generated/
+**/macos/Flutter/ephemeral/
+
+# Linux / Windows
+**/linux/flutter/ephemeral/
+**/windows/flutter/ephemeral/
+
+# Symbolication & Obfuscation
+app.*.symbols
+app.*.map.json
+
+# Python & Virtual Environments
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-
-# Virtual environments
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 venv/
 .venv/
 env/
 .env
+.env.*
+*.env
 
 # Jupyter Notebooks
 .ipynb_checkpoints/
 
-# ML Models & Data
+# Machine Learning Models, Checkpoints & Arrays
 *.h5
 *.keras
 *.pkl
 *.pth
 *.pt
+*.onnx
+*.tflite
+*.joblib
+*.sav
+*.ckpt
+*.safetensors
+*.bin
+*.npy
+*.npz
 
-# Project-specific data folders
+# Project Data & Audio Files
 data/
 models/
 temp_test_audio/
+dataset/
+datasets/
+temp/
+tmp/
+
+# Audio & Media Files
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+*.aac
+*.opus
+*.wma
+
+# Compressed Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.gz
