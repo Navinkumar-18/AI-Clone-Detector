@@ -1,17 +1,19 @@
-/// All /predict HTTP logic for VoiceGuard.
+/// All API logic for VoiceGuard.
 ///
 /// To swap the backend: edit [kBackendBaseUrl] in config.dart only.
-/// To change request/response shape: edit [PredictResult] and [VoiceGuardApiClient.predict] here only.
+/// To change request/response shape: edit models and methods here only.
 library;
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'config.dart';
+import 'models/live_analysis_result.dart';
 
 // ---------------------------------------------------------------------------
-// Result model
+// Result model — existing /predict contract
 // ---------------------------------------------------------------------------
 
 /// Typed result returned by /predict.
@@ -109,6 +111,74 @@ class VoiceGuardApiClient {
     } catch (_) {
       // Malformed JSON from backend — treat as server error.
       throw const BackendErrorException(200);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Live Call Analysis
+  // -------------------------------------------------------------------------
+
+  /// Send a raw WAV audio chunk to POST /live/analyze for real-time detection.
+  ///
+  /// [wavBytes] must be a complete WAV file (with header) containing the
+  /// audio chunk to analyse. The backend runs the same Wav2Vec2 inference
+  /// pipeline as /predict.
+  ///
+  /// Throws [BackendUnreachableException] or [BackendErrorException] on failure.
+  static Future<LiveAnalysisResult> analyzeLiveChunk(Uint8List wavBytes) async {
+    final uri = Uri.parse('$kBackendBaseUrl/live/analyze');
+    final request = http.MultipartRequest('POST', uri);
+
+    request.files.add(http.MultipartFile.fromBytes(
+      'file',
+      wavBytes,
+      filename: 'live_chunk.wav',
+    ));
+
+    http.StreamedResponse streamedResponse;
+    try {
+      streamedResponse = await request.send().timeout(kLiveRequestTimeout);
+    } on SocketException catch (e) {
+      throw BackendUnreachableException(e.message);
+    } on TimeoutException {
+      throw const BackendUnreachableException('Live analysis timed out');
+    } catch (e) {
+      throw BackendUnreachableException(e.toString());
+    }
+
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode != 200) {
+      throw BackendErrorException(response.statusCode);
+    }
+
+    try {
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return LiveAnalysisResult.fromJson(json);
+    } catch (_) {
+      throw const BackendErrorException(200);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Health Check
+  // -------------------------------------------------------------------------
+
+  /// Check backend connectivity and model status via GET /health.
+  ///
+  /// Returns `true` if the backend is reachable and the model is loaded.
+  /// Returns `false` on any failure (network, timeout, model not ready).
+  static Future<bool> checkHealth() async {
+    try {
+      final uri = Uri.parse('$kBackendBaseUrl/health');
+      final response = await http.get(uri).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        return json['model_loaded'] == true;
+      }
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 }

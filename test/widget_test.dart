@@ -1,9 +1,7 @@
-// This is a basic Flutter widget test.
+// Basic VoiceGuard widget smoke test.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Verifies the app builds and the home screen renders
+// with the expected two-mode UI.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,20 +9,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sih2026/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('Home screen shows VoiceGuard title and both action buttons',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const VoiceGuardApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // App title
+    expect(find.text('VoiceGuard'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // App subtitle
+    expect(find.text('AI Voice Security System'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Primary action — Live Call
+    expect(find.text('LIVE CALL ANALYSIS'), findsOneWidget);
+
+    // Secondary action — Audio File
+    expect(find.text('ANALYZE AUDIO FILE'), findsOneWidget);
+
+    // Record option
+    expect(find.text('Record & Analyze'), findsOneWidget);
   });
 }

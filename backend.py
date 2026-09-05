@@ -6,15 +6,28 @@ Server : uvicorn backend:app --host 0.0.0.0 --port 8000
 
 Endpoints
 ---------
-POST /predict   - Upload an audio file; returns label / confidence / risk_level
-GET  /health    - Liveness check; confirms model is loaded
+POST /predict        - Upload an audio file; returns label / confidence / risk_level
+POST /live/analyze   - Upload a live audio chunk; returns detection_score / risk / action
+GET  /health         - Liveness check; confirms model is loaded
 
 JSON contract (Flutter-compatible)
 -----------------------------------
+/predict:
 {
   "label":      "bonafide" | "spoof",
   "confidence": float  0.0-1.0,
   "risk_level": "low" | "medium" | "high"
+}
+
+/live/analyze:
+{
+  "label":           "bonafide" | "spoof",
+  "confidence":      float 0.0-1.0,
+  "risk_level":      "low" | "medium" | "high",
+  "detection_score": float 0.0-1.0,
+  "prob_real":       float 0.0-1.0,
+  "prob_fake":       float 0.0-1.0,
+  "action":          "allow" | "verify" | "block"
 }
 """
 
@@ -52,6 +65,10 @@ FAKE_THRESHOLD = 0.4          # probs[1] >= threshold -> fake  (matches test_pre
 HIGH_RISK_THRESHOLD = 0.85    # spoof confidence for "high" risk
 
 ALLOWED_EXTENSIONS = {".wav", ".flac", ".mp3", ".ogg", ".m4a", ".aac", ".webm"}
+
+# Action mapping -- used by /live/analyze for security decisions.
+# These directly mirror the risk levels established in evaluate_live_model.py.
+_ACTION_MAP = {"low": "allow", "medium": "verify", "high": "block"}
 
 # ---------------------------------------------------------------------------
 # Global model state (populated in lifespan)
@@ -194,6 +211,17 @@ def _run_inference(audio_path: str) -> dict:
     }
 
 
+def _save_upload_to_temp(file_bytes: bytes, suffix: str = ".wav") -> str:
+    """Save uploaded bytes to a temporary file and return its path."""
+    tmp_path = os.path.join(
+        tempfile.gettempdir(),
+        f"deepfake_{uuid.uuid4().hex}{suffix}",
+    )
+    with open(tmp_path, "wb") as f:
+        f.write(file_bytes)
+    return tmp_path
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -222,14 +250,9 @@ async def predict(file: UploadFile = File(...)):
 
     # --- save to temp file ------------------------------------------------
     suffix = ext if ext else ".wav"
-    tmp_path = os.path.join(
-        tempfile.gettempdir(),
-        f"deepfake_{uuid.uuid4().hex}{suffix}",
-    )
     try:
         contents = await file.read()
-        with open(tmp_path, "wb") as f:
-            f.write(contents)
+        tmp_path = _save_upload_to_temp(contents, suffix)
     except Exception as exc:
         raise HTTPException(
             status_code=422,
@@ -269,3 +292,71 @@ async def predict(file: UploadFile = File(...)):
 async def health():
     """Liveness / readiness check."""
     return {"status": "ok", "model_loaded": _state["model_loaded"]}
+
+
+# ---------------------------------------------------------------------------
+# Live Call Analysis endpoint
+# ---------------------------------------------------------------------------
+@app.post("/live/analyze")
+async def live_analyze(file: UploadFile = File(...)):
+    """
+    Accept a short audio chunk from the live call analysis mode and return
+    a detection result with security action.
+
+    This endpoint reuses the SAME inference pipeline as /predict (same model,
+    same preprocessing, same thresholds). The only difference is the response
+    format, which includes detection_score and action fields for the live UI.
+
+    Returns:
+        {
+          "label":           "bonafide" | "spoof",
+          "confidence":      float 0.0-1.0,
+          "risk_level":      "low" | "medium" | "high",
+          "detection_score": float 0.0-1.0  (prob_fake — the spoof detection score),
+          "prob_real":       float 0.0-1.0,
+          "prob_fake":       float 0.0-1.0,
+          "action":          "allow" | "verify" | "block"
+        }
+    """
+    if not _state["model_loaded"]:
+        raise HTTPException(status_code=503, detail="Model is not loaded yet.")
+
+    # --- save uploaded chunk to temp file ---------------------------------
+    try:
+        contents = await file.read()
+        tmp_path = _save_upload_to_temp(contents, ".wav")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Failed to read audio chunk: {exc}",
+        ) from exc
+
+    # --- run the SAME inference pipeline ----------------------------------
+    try:
+        result = _run_inference(tmp_path)
+    finally:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+
+    action = _ACTION_MAP.get(result["risk_level"], "verify")
+
+    log.info(
+        "LIVE    | label=%s | score=%.4f | risk=%s | action=%s",
+        result["label"],
+        result["prob_fake"],
+        result["risk_level"],
+        action,
+    )
+
+    return {
+        "label": result["label"],
+        "confidence": result["confidence"],
+        "risk_level": result["risk_level"],
+        "detection_score": result["prob_fake"],
+        "prob_real": result["prob_real"],
+        "prob_fake": result["prob_fake"],
+        "action": action,
+    }
+

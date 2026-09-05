@@ -1,5 +1,9 @@
 // main.dart — VoiceGuard app entry point and HomeScreen widget.
 //
+// Two analysis modes:
+//   1. Live Call Analysis  → LiveCallScreen (continuous microphone analysis)
+//   2. Analyze Audio File  → existing upload/record → single prediction
+//
 // API logic lives in api_client.dart.
 // Backend URL and timeout constants live in config.dart.
 
@@ -11,6 +15,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
 import 'api_client.dart';
+import 'screens/live_call_screen.dart';
 
 // ---------------------------------------------------------------------------
 // App root
@@ -209,6 +214,16 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ---------------------------------------------------------------------------
+  // Navigate to Live Call screen
+  // ---------------------------------------------------------------------------
+
+  void _openLiveCallScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const LiveCallScreen()),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Build
   // ---------------------------------------------------------------------------
 
@@ -262,50 +277,100 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ---------------------------------------------------------------------------
-  // Idle view
+  // Idle view — two-button home screen
   // ---------------------------------------------------------------------------
 
   Widget _buildIdleView() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.graphic_eq, size: 72, color: Color(0xFF1565C0)),
+        const Icon(Icons.shield, size: 64, color: Color(0xFF1565C0)),
         const SizedBox(height: 16),
         const Text(
-          'Detect AI-Generated Voice',
+          'VOICEGUARD',
           style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
             color: Color(0xFF1A237E),
+            letterSpacing: 3,
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         const Text(
-          'Upload an audio clip or record your voice\nto check if it is genuine or synthetic.',
-          style: TextStyle(color: Colors.black54, height: 1.5),
+          'AI Voice Security System',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.black45,
+            letterSpacing: 1,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 40),
-        Row(
-          children: [
-            Expanded(
-              child: _ActionButton(
-                icon: Icons.upload_file,
-                label: 'Upload Clip',
-                onPressed: _pickAndAnalyze,
+
+        // Primary action — Live Call Analysis
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1565C0),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              elevation: 3,
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _ActionButton(
-                icon: Icons.mic,
-                label: 'Record',
-                onPressed: _startRecording,
-                color: const Color(0xFFC62828),
+            onPressed: _openLiveCallScreen,
+            icon: const Icon(Icons.mic, size: 24),
+            label: const Text('LIVE CALL ANALYSIS'),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Secondary action — Analyze Audio File
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              side: const BorderSide(color: Color(0xFF1565C0), width: 1.5),
+              foregroundColor: const Color(0xFF1565C0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ],
+            onPressed: _pickAndAnalyze,
+            icon: const Icon(Icons.folder_open, size: 24),
+            label: const Text('ANALYZE AUDIO FILE'),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Record option
+        SizedBox(
+          width: double.infinity,
+          child: TextButton.icon(
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              foregroundColor: const Color(0xFFC62828),
+              textStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onPressed: _startRecording,
+            icon: const Icon(Icons.fiber_manual_record, size: 18),
+            label: const Text('Record & Analyze'),
+          ),
         ),
       ],
     );
@@ -569,40 +634,5 @@ class _HomeScreenState extends State<HomeScreen>
       'medium' => const Color(0xFFE65100), // deep orange
       _ => const Color(0xFF2E7D32),        // dark green (low / unknown)
     };
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Reusable action button
-// ---------------------------------------------------------------------------
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onPressed;
-  final Color color;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-    this.color = const Color(0xFF1565C0),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 2,
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-      ),
-      onPressed: onPressed,
-      icon: Icon(icon, size: 22),
-      label: Text(label),
-    );
   }
 }
