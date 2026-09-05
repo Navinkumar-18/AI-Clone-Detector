@@ -1,13 +1,30 @@
-/// config.dart — backend URL configuration and live analysis constants.
+/// Backend base URL configuration.
 ///
-/// Change [kBackendBaseUrl] here when swapping between the stub and the real backend.
-/// Do NOT change this value anywhere else in the codebase.
+/// Choose the appropriate URL for your environment:
 ///
-/// Common values:
-///   Android emulator → host machine:  'http://10.0.2.2:8000'
-///   Web / desktop (localhost):         'http://localhost:8000'
-///   Physical Android device (LAN):     'http://192.168.x.x:8000'  ← replace with your machine's LAN IP
-const String kBackendBaseUrl = 'http://10.0.2.2:8000';
+/// 1. Physical Android Phone (Wi-Fi / LAN):
+///    Must point to your Windows PC's IPv4 address on the same local network.
+///    Find your PC's IP via `ipconfig` in PowerShell (e.g. Wireless LAN adapter Wi-Fi).
+///
+/// 2. Android Emulator:
+///    Uses 'http://10.0.2.2:8000' (special emulator alias routing to host 127.0.0.1).
+///
+/// 3. Web / Desktop:
+///    Uses 'http://localhost:8000'.
+const String kEmulatorBackendUrl = 'http://10.0.2.2:8000';
+
+/// Physical Android device LAN URL.
+/// Update this if your PC's LAN IP changes (e.g. on a different Wi-Fi router).
+const String kPhysicalDeviceBackendUrl = 'http://192.168.137.45:8000';
+
+/// Active backend URL used across all API calls.
+/// Defaults to [kPhysicalDeviceBackendUrl] for physical device testing.
+/// Can also be overridden at build/run time via:
+///   flutter run --dart-define=BACKEND_URL=http://10.0.2.2:8000
+const String kBackendBaseUrl = String.fromEnvironment(
+  'BACKEND_URL',
+  defaultValue: kPhysicalDeviceBackendUrl,
+);
 
 /// Request timeout for the /predict call.
 /// Large audio files on a slow demo-day Wi-Fi may need more time.

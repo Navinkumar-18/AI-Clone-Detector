@@ -3,7 +3,6 @@
 // Verifies the app builds and the home screen renders
 // with the expected two-mode UI.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sih2026/main.dart';
