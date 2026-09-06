@@ -7,7 +7,7 @@
         android:label="VoiceGuard"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"> <!-- DEMO: kept as fallback for VOICEGUARD_DEV_MODE=1 plain HTTP -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,0 +1,107 @@
+====================================================================================================
+  VOICEGUARD -- LIVE MODEL THRESHOLD EVALUATION REPORT
+  Model : garystafford/wav2vec2-deepfake-voice-detector
+  Dataset: ASVspoof 2019 LA -- eval split
+  Clips evaluated: 250 / 250 (50 bonafide, 200 spoof, 0 errors)
+  Current backend FAKE_THRESHOLD: 0.4
+====================================================================================================
+
+  TABLE 1: Per-threshold metrics
+----------------------------------------------------------------------------------------------------
+  Threshold   Accuracy  Precision     Recall         F1        FPR        FNR   Spoof_Acc   Bona_Acc     TP     TN     FP     FN  Note
+----------------------------------------------------------------------------------------------------
+       0.30   62.00%   75.61%   77.50%   76.54%  100.00%   22.50%      77.50%      0.00%    155      0     50     45  <- BEST F1  <- LOWEST FNR (fewest missed spoofs)
+       0.35   60.40%   75.12%   75.50%   75.31%  100.00%   24.50%      75.50%      0.00%    151      0     50     49  
+       0.40   59.60%   74.87%   74.50%   74.69%  100.00%   25.50%      74.50%      0.00%    149      0     50     51  <- CURRENT
+       0.45   59.20%   74.75%   74.00%   74.37%  100.00%   26.00%      74.00%      0.00%    148      0     50     52  
+       0.50   58.80%   74.62%   73.50%   74.06%  100.00%   26.50%      73.50%      0.00%    147      0     50     53  
+       0.55   58.40%   74.49%   73.00%   73.74%  100.00%   27.00%      73.00%      0.00%    146      0     50     54  
+       0.60   58.40%   74.49%   73.00%   73.74%  100.00%   27.00%      73.00%      0.00%    146      0     50     54  
+       0.65   58.00%   74.36%   72.50%   73.42%  100.00%   27.50%      72.50%      0.00%    145      0     50     55  
+       0.70   57.60%   74.23%   72.00%   73.10%  100.00%   28.00%      72.00%      0.00%    144      0     50     56  
+       0.75   56.80%   73.96%   71.00%   72.45%  100.00%   29.00%      71.00%      0.00%    142      0     50     58  
+       0.80   55.60%   73.54%   69.50%   71.47%  100.00%   30.50%      69.50%      0.00%    139      0     50     61  
+----------------------------------------------------------------------------------------------------
+
+  TABLE 2: Confusion matrices for key thresholds
+----------------------------------------------------------------------------------------------------
+  Threshold = 0.30
+    Predicted ->  SPOOF      BONAFIDE
+    Actual SPOOF   TP= 155   FN=  45   (FNR=22.50%, missed spoofs)
+    Actual BONA    FP=  50   TN=   0   (FPR=100.00%, false alarms)
+
+  Threshold = 0.40
+    Predicted ->  SPOOF      BONAFIDE
+    Actual SPOOF   TP= 149   FN=  51   (FNR=25.50%, missed spoofs)
+    Actual BONA    FP=  50   TN=   0   (FPR=100.00%, false alarms)
+
+  TABLE 3: Detection score (prob_fake) distribution
+----------------------------------------------------------------------------------------------------
+       Class       N        Min        p25     Median        p75        Max       Mean
+----------------------------------------------------------------------------------------------------
+    bonafide      50     0.8107     0.8699     0.8976     0.9877     0.9952     0.9080
+       spoof     200     0.0316     0.3756     0.8620     0.8932     0.9953     0.7050
+
+  TABLE 4: Per-file scores (sorted by prob_fake, first 40 shown)
+----------------------------------------------------------------------------------------------------
+  filename                           gt   prob_fake   prob_real   pred@curr   match?
+----------------------------------------------------------------------------------------------------
+  LA_D_2760189                    spoof    0.995335    0.004665       spoof       OK
+  LA_D_2975559                    spoof    0.995206    0.004794       spoof       OK
+  LA_D_2427933                 bonafide    0.995166    0.004834       spoof       XX
+  LA_D_2340825                 bonafide    0.994866    0.005134       spoof       XX
+  LA_D_2973553                    spoof    0.994713    0.005286       spoof       OK
+  LA_D_3196844                    spoof    0.994670    0.005330       spoof       OK
+  LA_D_2813590                    spoof    0.994662    0.005339       spoof       OK
+  LA_D_2689476                    spoof    0.994586    0.005414       spoof       OK
+  LA_D_2453330                    spoof    0.994442    0.005558       spoof       OK
+  LA_D_3079188                    spoof    0.994300    0.005700       spoof       OK
+  LA_D_2571019                    spoof    0.994229    0.005771       spoof       OK
+  LA_D_3019059                    spoof    0.994223    0.005777       spoof       OK
+  LA_D_2996902                    spoof    0.994183    0.005817       spoof       OK
+  LA_D_3096505                    spoof    0.994044    0.005956       spoof       OK
+  LA_D_2942769                    spoof    0.994012    0.005988       spoof       OK
+  LA_D_2334188                 bonafide    0.993956    0.006044       spoof       XX
+  LA_D_2239661                 bonafide    0.993921    0.006079       spoof       XX
+  LA_D_2741757                    spoof    0.993907    0.006093       spoof       OK
+  LA_D_3137946                    spoof    0.993874    0.006126       spoof       OK
+  LA_D_2363183                 bonafide    0.993871    0.006129       spoof       XX
+  LA_D_2333541                 bonafide    0.993771    0.006229       spoof       XX
+  LA_D_2670696                    spoof    0.993708    0.006292       spoof       OK
+  LA_D_2803648                    spoof    0.993696    0.006304       spoof       OK
+  LA_D_3082795                    spoof    0.993678    0.006322       spoof       OK
+  LA_D_2754300                    spoof    0.993652    0.006348       spoof       OK
+  LA_D_2291264                 bonafide    0.993593    0.006407       spoof       XX
+  LA_D_2367899                 bonafide    0.993374    0.006626       spoof       XX
+  LA_D_3179640                    spoof    0.993225    0.006775       spoof       OK
+  LA_D_2496514                    spoof    0.993165    0.006835       spoof       OK
+  LA_D_2417895                 bonafide    0.993090    0.006910       spoof       XX
+  LA_D_3027894                    spoof    0.993079    0.006921       spoof       OK
+  LA_D_2654479                    spoof    0.992812    0.007188       spoof       OK
+  LA_D_2389494                 bonafide    0.992657    0.007343       spoof       XX
+  LA_D_2862236                    spoof    0.992511    0.007489       spoof       OK
+  LA_D_3189395                    spoof    0.992387    0.007613       spoof       OK
+  LA_D_3141328                    spoof    0.992348    0.007652       spoof       OK
+  LA_D_2416538                 bonafide    0.991796    0.008204       spoof       XX
+  LA_D_3040671                    spoof    0.991775    0.008225       spoof       OK
+  LA_D_2331981                 bonafide    0.991671    0.008329       spoof       XX
+  LA_D_3086617                    spoof    0.991554    0.008446       spoof       OK
+  ... (210 more clips not shown -- see full data above)
+
+====================================================================================================
+  THRESHOLD ANALYSIS -- SECURITY CONTEXT
+====================================================================================================
+
+  Security objective: Missing a cloned voice (FN) is MORE dangerous
+  than triggering extra verification for a genuine voice (FP).
+  Therefore: prefer lower FNR over lower FPR, with a reasonable F1/Accuracy trade-off.
+
+  Current threshold (0.4):
+    Accuracy=59.60%, F1=74.69%, FNR=25.50% (missed spoofs), FPR=100.00% (false alarms)
+
+  Candidate thresholds to consider:
+    th=0.40  F1=74.69%   FNR=25.50%  (missed spoofs)  FPR=100.00% (false alarms)  Accuracy=59.60%
+
+  >>> DO NOT CHANGE backend.py FAKE_THRESHOLD until this report is reviewed.
+  >>> Present this report to the team before locking the threshold.
+====================================================================================================

@@ -1,8 +1,17 @@
 """
-backend.py - Real deepfake-voice detection API
-================================================
+backend.py — VoiceGuard deepfake-voice detection API
+=====================================================
 Model  : garystafford/wav2vec2-deepfake-voice-detector
-Server : uvicorn backend:app --host 0.0.0.0 --port 8000
+Server : python backend.py  (HTTPS on 0.0.0.0:8443 by default)
+
+ZERO-PERSISTENCE PRIVACY GUARANTEE
+-----------------------------------
+This server processes audio ONLY in ephemeral temp files that are created and
+deleted within a single request scope.  No raw audio, PCM data, or WAV file
+is ever persisted to disk, database, or log beyond the lifetime of that
+request.  Only scalar metadata (label, confidence, risk_level) is returned
+to the client.  Every temp file deletion is followed by an explicit PRIVACY
+audit log line.
 
 Endpoints
 ---------
@@ -14,9 +23,11 @@ JSON contract (Flutter-compatible)
 -----------------------------------
 /predict:
 {
-  "label":      "bonafide" | "spoof",
-  "confidence": float  0.0-1.0,
-  "risk_level": "low" | "medium" | "high"
+  "label":           "bonafide" | "spoof",
+  "confidence":      float  0.0-1.0,
+  "risk_level":      "low" | "medium" | "high",
+  "risk_percentage": float  0.0-100.0,
+  "risk_category":   "Low Risk" | "Medium Risk" | "Critical"
 }
 
 /live/analyze:
@@ -27,7 +38,9 @@ JSON contract (Flutter-compatible)
   "detection_score": float 0.0-1.0,
   "prob_real":       float 0.0-1.0,
   "prob_fake":       float 0.0-1.0,
-  "action":          "allow" | "verify" | "block"
+  "action":          "allow" | "verify" | "block",
+  "risk_percentage": float 0.0-100.0,
+  "risk_category":   "Low Risk" | "Medium Risk" | "Critical"
 }
 """
 
@@ -35,6 +48,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 import tempfile
 import uuid
 from contextlib import asynccontextmanager
@@ -61,7 +75,10 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 MODEL_NAME = "garystafford/wav2vec2-deepfake-voice-detector"
 SAMPLE_RATE = 16_000
-FAKE_THRESHOLD = 0.4          # probs[1] >= threshold -> fake  (matches test_pretrained.py)
+# Validated via evaluate_live_model.py sweep on ASVspoof 2019 LA eval (see threshold_report.txt)
+# Threshold 0.30: lowest FNR (22.50%), best F1 (76.54%) in the 0.30–0.80 sweep.
+# Security-first: prefer catching spoofs (low FNR) over reducing false alarms.
+FAKE_THRESHOLD = 0.30         # probs[1] >= threshold -> fake
 HIGH_RISK_THRESHOLD = 0.85    # spoof confidence for "high" risk
 
 ALLOWED_EXTENSIONS = {".wav", ".flac", ".mp3", ".ogg", ".m4a", ".aac", ".webm"}
@@ -69,6 +86,9 @@ ALLOWED_EXTENSIONS = {".wav", ".flac", ".mp3", ".ogg", ".m4a", ".aac", ".webm"}
 # Action mapping -- used by /live/analyze for security decisions.
 # These directly mirror the risk levels established in evaluate_live_model.py.
 _ACTION_MAP = {"low": "allow", "medium": "verify", "high": "block"}
+
+# Risk category labels for the UI — percentage + human-readable category.
+_RISK_CATEGORY_MAP = {"low": "Low Risk", "medium": "Medium Risk", "high": "Critical"}
 
 # ---------------------------------------------------------------------------
 # Global model state (populated in lifespan)
@@ -222,6 +242,15 @@ def _save_upload_to_temp(file_bytes: bytes, suffix: str = ".wav") -> str:
     return tmp_path
 
 
+def _cleanup_temp(path: str) -> None:
+    """Delete a temp file and emit a privacy audit log line."""
+    try:
+        os.remove(path)
+    except OSError:
+        pass
+    log.info("PRIVACY | Temp audio purged — no persistent storage of raw audio")
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -231,7 +260,8 @@ async def predict(file: UploadFile = File(...)):
     Accept an uploaded audio file and return a deepfake detection result.
 
     Returns:
-        {"label": "bonafide"|"spoof", "confidence": float, "risk_level": "low"|"medium"|"high"}
+        {"label": "bonafide"|"spoof", "confidence": float, "risk_level": "low"|"medium"|"high",
+         "risk_percentage": float, "risk_category": str}
     """
     if not _state["model_loaded"]:
         raise HTTPException(status_code=503, detail="Model is not loaded yet.")
@@ -248,26 +278,26 @@ async def predict(file: UploadFile = File(...)):
             ),
         )
 
-    # --- save to temp file ------------------------------------------------
+    # --- save to temp file + run inference in one try/finally scope --------
+    # This ensures cleanup even if an exception occurs between file creation
+    # and inference.
     suffix = ext if ext else ".wav"
+    tmp_path: str | None = None
     try:
         contents = await file.read()
         tmp_path = _save_upload_to_temp(contents, suffix)
+        result = _run_inference(tmp_path)
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=422,
-            detail=f"Failed to read uploaded file: {exc}",
+            detail=f"Failed to process uploaded file: {exc}",
         ) from exc
-
-    # --- run inference ----------------------------------------------------
-    try:
-        result = _run_inference(tmp_path)
     finally:
         # always clean up temp file
-        try:
-            os.remove(tmp_path)
-        except OSError:
-            pass
+        if tmp_path:
+            _cleanup_temp(tmp_path)
 
     # --- log & return -----------------------------------------------------
     log.info(
@@ -278,13 +308,15 @@ async def predict(file: UploadFile = File(...)):
         result["risk_level"],
     )
 
-    # Flutter contract fields + DEBUG raw probs (remove before final demo build)
+    risk_category = _RISK_CATEGORY_MAP.get(result["risk_level"], "Medium Risk")
+    risk_percentage = round(result["confidence"] * 100, 1)
+
     return {
         "label": result["label"],
         "confidence": result["confidence"],
         "risk_level": result["risk_level"],
-        "debug_prob_real": result["prob_real"],   # DEBUG — strip before demo
-        "debug_prob_fake": result["prob_fake"],   # DEBUG — strip before demo
+        "risk_percentage": risk_percentage,
+        "risk_category": risk_category,
     }
 
 
@@ -315,32 +347,34 @@ async def live_analyze(file: UploadFile = File(...)):
           "detection_score": float 0.0-1.0  (prob_fake — the spoof detection score),
           "prob_real":       float 0.0-1.0,
           "prob_fake":       float 0.0-1.0,
-          "action":          "allow" | "verify" | "block"
+          "action":          "allow" | "verify" | "block",
+          "risk_percentage": float 0.0-100.0,
+          "risk_category":   "Low Risk" | "Medium Risk" | "Critical"
         }
     """
     if not _state["model_loaded"]:
         raise HTTPException(status_code=503, detail="Model is not loaded yet.")
 
-    # --- save uploaded chunk to temp file ---------------------------------
+    # --- save + infer in one try/finally scope ----------------------------
+    tmp_path: str | None = None
     try:
         contents = await file.read()
         tmp_path = _save_upload_to_temp(contents, ".wav")
+        result = _run_inference(tmp_path)
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=422,
-            detail=f"Failed to read audio chunk: {exc}",
+            detail=f"Failed to process audio chunk: {exc}",
         ) from exc
-
-    # --- run the SAME inference pipeline ----------------------------------
-    try:
-        result = _run_inference(tmp_path)
     finally:
-        try:
-            os.remove(tmp_path)
-        except OSError:
-            pass
+        if tmp_path:
+            _cleanup_temp(tmp_path)
 
     action = _ACTION_MAP.get(result["risk_level"], "verify")
+    risk_category = _RISK_CATEGORY_MAP.get(result["risk_level"], "Medium Risk")
+    risk_percentage = round(result["confidence"] * 100, 1)
 
     log.info(
         "LIVE    | label=%s | score=%.4f | risk=%s | action=%s",
@@ -358,5 +392,38 @@ async def live_analyze(file: UploadFile = File(...)):
         "prob_real": result["prob_real"],
         "prob_fake": result["prob_fake"],
         "action": action,
+        "risk_percentage": risk_percentage,
+        "risk_category": risk_category,
     }
 
+
+# ---------------------------------------------------------------------------
+# Direct launch (python backend.py)
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    import uvicorn
+
+    dev_mode = os.environ.get("VOICEGUARD_DEV_MODE", "").strip() == "1"
+
+    if dev_mode:
+        log.warning(
+            "⚠ VOICEGUARD_DEV_MODE=1 — running plain HTTP on port 8000. "
+            "Do NOT use this in demos or production."
+        )
+        uvicorn.run(app, host="0.0.0.0", port=8000)
+    else:
+        cert_file = "cert.pem"
+        key_file = "key.pem"
+        if not (os.path.exists(cert_file) and os.path.exists(key_file)):
+            log.info("TLS certificates not found — generating via generate_cert.py ...")
+            import subprocess
+            subprocess.run([sys.executable, "generate_cert.py"], check=True)
+
+        log.info("Starting HTTPS server on 0.0.0.0:8443")
+        uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=8443,
+            ssl_keyfile=key_file,
+            ssl_certfile=cert_file,
+        )

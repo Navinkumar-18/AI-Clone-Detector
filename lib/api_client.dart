@@ -1,6 +1,6 @@
 /// All API logic for VoiceGuard.
 ///
-/// To swap the backend: edit [kBackendBaseUrl] in config.dart only.
+/// To swap the backend: use the settings screen or edit [kDefaultBackendUrl] in config.dart.
 /// To change request/response shape: edit models and methods here only.
 library;
 
@@ -73,7 +73,7 @@ class VoiceGuardApiClient {
   /// Throws [BackendUnreachableException], [UnsupportedFileException], or
   /// [BackendErrorException] on failure — never a raw socket exception.
   static Future<PredictResult> predict(String filePath) async {
-    final uri = Uri.parse('$kBackendBaseUrl/predict');
+    final uri = Uri.parse('${BackendConfig.baseUrl}/predict');
     final request = http.MultipartRequest('POST', uri);
 
     try {
@@ -126,7 +126,7 @@ class VoiceGuardApiClient {
   ///
   /// Throws [BackendUnreachableException] or [BackendErrorException] on failure.
   static Future<LiveAnalysisResult> analyzeLiveChunk(Uint8List wavBytes) async {
-    final uri = Uri.parse('$kBackendBaseUrl/live/analyze');
+    final uri = Uri.parse('${BackendConfig.baseUrl}/live/analyze');
     final request = http.MultipartRequest('POST', uri);
 
     request.files.add(http.MultipartFile.fromBytes(
@@ -170,7 +170,7 @@ class VoiceGuardApiClient {
   /// Returns `false` on any failure (network, timeout, model not ready).
   static Future<bool> checkHealth() async {
     try {
-      final uri = Uri.parse('$kBackendBaseUrl/health');
+      final uri = Uri.parse('${BackendConfig.baseUrl}/health');
       final response = await http.get(uri).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;

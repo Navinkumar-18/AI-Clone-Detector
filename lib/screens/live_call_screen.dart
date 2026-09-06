@@ -98,6 +98,9 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   // -- audio level visualization --
   double _audioLevel = 0.0; // 0.0–1.0 normalized level
 
+  // -- speakerphone nudge (Task 6) --
+  bool _speakerphoneAcknowledged = false;
+
   // -------------------------------------------------------------------------
   // Lifecycle
   // -------------------------------------------------------------------------
@@ -134,6 +137,13 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   // Start call
   // -------------------------------------------------------------------------
   Future<void> _startCall() async {
+    // Task 6: Speakerphone UX nudge — show once per session before analysis.
+    if (!_speakerphoneAcknowledged) {
+      final proceed = await _showSpeakerphoneDialog();
+      if (!proceed) return; // user cancelled
+      _speakerphoneAcknowledged = true;
+    }
+
     setState(() => _callState = _CallState.starting);
 
     // 1. Check microphone permission
@@ -216,6 +226,40 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     _startHealthChecks();
 
     setState(() => _callState = _CallState.active);
+  }
+
+  // -------------------------------------------------------------------------
+  // Speakerphone dialog (Task 6)
+  // -------------------------------------------------------------------------
+  /// Shows a one-time dialog advising the user to enable speakerphone.
+  /// Returns true if the user tapped "Continue", false if cancelled.
+  Future<bool> _showSpeakerphoneDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        icon: const Icon(Icons.volume_up_rounded, size: 40, color: Color(0xFF1565C0)),
+        title: const Text('Enable Speakerphone'),
+        content: const Text(
+          'For live call protection to hear both sides of the '
+          'conversation, please enable speakerphone before starting.\n\n'
+          'VoiceGuard analyses acoustic signal properties only — '
+          'it does not process, transcribe, or store what is said.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).pop(true),
+            icon: const Icon(Icons.mic, size: 18),
+            label: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   // -------------------------------------------------------------------------
@@ -470,6 +514,15 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
       'high' => '🔴',
       'medium' => '🟠',
       _ => '🟢',
+    };
+  }
+
+  /// Maps risk_level to a human-readable category for consistent UI display.
+  String _riskCategory(String level) {
+    return switch (level) {
+      'high' => 'Critical',
+      'medium' => 'Medium Risk',
+      _ => 'Low Risk',
     };
   }
 
@@ -757,7 +810,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
             child: Column(
               children: [
                 Text(
-                  'AI DETECTION SCORE',
+                  'VOICE AUTHENTICITY RISK',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -778,10 +831,13 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                 Text(
                   _riskHistory.isEmpty
                       ? 'Waiting for analysis...'
-                      : 'AI Detection Score',
+                      : _riskCategory(_callLevelRisk),
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.4),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _riskHistory.isEmpty
+                        ? Colors.white.withValues(alpha: 0.4)
+                        : scoreColor,
                   ),
                 ),
                 if (_riskHistory.isNotEmpty) ...[
@@ -955,7 +1011,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    e.riskLevel.toUpperCase(),
+                    _riskCategory(e.riskLevel),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1029,7 +1085,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                 const Divider(color: Colors.white12, height: 24),
                 _summaryRow('Analysis Windows', '${_riskHistory.length}'),
                 const Divider(color: Colors.white12, height: 24),
-                _summaryRow('Maximum Risk', _maxRisk.toUpperCase(),
+                _summaryRow('Maximum Risk', _riskCategory(_maxRisk),
                     valueColor: maxColor),
                 const Divider(color: Colors.white12, height: 24),
                 _summaryRow('High-Risk Windows', '$_highRiskWindows',

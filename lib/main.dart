@@ -6,8 +6,13 @@
 //
 // API logic lives in api_client.dart.
 // Backend URL and timeout constants live in config.dart.
+//
+// PRIVACY: Only PredictResult metadata (label, confidence, riskLevel) is
+// retained in widget state. Raw audio is never stored beyond the HTTP request
+// lifetime.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +20,37 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
 import 'api_client.dart';
+import 'config.dart';
 import 'screens/live_call_screen.dart';
+
+// ---------------------------------------------------------------------------
+// DEMO-ONLY: accepts self-signed cert unconditionally, not for production use.
+// This allows the app to communicate with a VoiceGuard backend running
+// behind a self-signed TLS certificate (e.g. local dev or ngrok tunnels).
+// ---------------------------------------------------------------------------
+class _DemoHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (cert, host, port) => true;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // App root
 // ---------------------------------------------------------------------------
 
-void main() => runApp(const VoiceGuardApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // DEMO-ONLY: accept self-signed certs for local/ngrok HTTPS
+  HttpOverrides.global = _DemoHttpOverrides();
+
+  // Load any previously-saved backend URL from SharedPreferences
+  await BackendConfig.init();
+
+  runApp(const VoiceGuardApp());
+}
 
 class VoiceGuardApp extends StatelessWidget {
   const VoiceGuardApp({super.key});
@@ -161,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen>
       setState(() {
         _screen = _ScreenState.error;
         _errorMessage =
-            'Cannot reach the server.\n\nMake sure the backend is running and the URL in config.dart is correct.';
+            'Cannot reach the server.\n\nMake sure the backend is running and the URL in Settings is correct.';
       });
     } on UnsupportedFileException {
       setState(() {
@@ -174,6 +203,30 @@ class _HomeScreenState extends State<HomeScreen>
         _screen = _ScreenState.error;
         _errorMessage = 'The server returned an error (HTTP ${e.statusCode}).\n\nTry again or check backend logs.';
       });
+    } finally {
+      // PRIVACY: Delete the recording file after prediction completes.
+      // Only metadata (label, confidence, riskLevel) is retained in widget state.
+      _deleteRecordingIfNeeded(filePath);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Privacy — recording cleanup
+  // ---------------------------------------------------------------------------
+
+  /// Deletes the temp recording file if [filePath] is a VoiceGuard recording.
+  /// Uploaded files (user-picked) are NOT deleted — only our temp recordings.
+  void _deleteRecordingIfNeeded(String filePath) {
+    if (_recordingPath != null && filePath == _recordingPath) {
+      try {
+        final f = File(filePath);
+        if (f.existsSync()) {
+          f.deleteSync();
+        }
+      } catch (_) {
+        // Best-effort cleanup; don't crash the app.
+      }
+      _recordingPath = null;
     }
   }
 
@@ -182,6 +235,10 @@ class _HomeScreenState extends State<HomeScreen>
   // ---------------------------------------------------------------------------
 
   void _reset() {
+    // PRIVACY: Clean up any lingering recording file before resetting state.
+    if (_recordingPath != null) {
+      _deleteRecordingIfNeeded(_recordingPath!);
+    }
     setState(() {
       _screen = _ScreenState.idle;
       _result = null;
@@ -224,6 +281,17 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ---------------------------------------------------------------------------
+  // Settings dialog
+  // ---------------------------------------------------------------------------
+
+  void _openSettingsDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => const _SettingsDialog(),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Build
   // ---------------------------------------------------------------------------
 
@@ -246,6 +314,12 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
         actions: [
+          // Settings gear icon
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white70),
+            tooltip: 'Settings',
+            onPressed: _openSettingsDialog,
+          ),
           if (_screen == _ScreenState.result || _screen == _ScreenState.error)
             TextButton.icon(
               onPressed: _reset,
@@ -457,14 +531,15 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ---------------------------------------------------------------------------
-  // Result view
+  // Result view — percentage + risk category instead of binary label
   // ---------------------------------------------------------------------------
 
   Widget _buildResultView() {
     final r = _result!;
     final color = _riskColor(r.riskLevel);
-    final isSpoof = r.label == 'spoof';
     final pct = (r.confidence * 100).toStringAsFixed(1);
+    final category = _riskCategory(r.riskLevel);
+    final isSpoof = r.label == 'spoof';
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -488,15 +563,28 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               const SizedBox(height: 12),
 
-              // BONAFIDE / SPOOF label — large, readable from across a table
+              // Risk percentage — large, readable from across a table
               Text(
-                r.label.toUpperCase(),
+                '$pct%',
                 style: TextStyle(
-                  fontSize: 40,
+                  fontSize: 48,
                   fontWeight: FontWeight.w900,
                   color: color,
-                  letterSpacing: 2,
                 ),
+              ),
+
+              const SizedBox(height: 4),
+
+              // Risk category label
+              Text(
+                'Voice Authenticity Risk: $category',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                  letterSpacing: 0.5,
+                ),
+                textAlign: TextAlign.center,
               ),
 
               const SizedBox(height: 12),
@@ -523,12 +611,12 @@ class _HomeScreenState extends State<HomeScreen>
               const Divider(),
               const SizedBox(height: 16),
 
-              // Confidence section
+              // Confidence bar section
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Confidence',
+                    'Detection Confidence',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -635,4 +723,161 @@ class _HomeScreenState extends State<HomeScreen>
       _ => const Color(0xFF2E7D32),        // dark green (low / unknown)
     };
   }
+
+  /// Maps risk_level to a human-readable category for UI display.
+  String _riskCategory(String level) {
+    return switch (level) {
+      'high' => 'Critical',
+      'medium' => 'Medium Risk',
+      _ => 'Low Risk',
+    };
+  }
 }
+
+// ---------------------------------------------------------------------------
+// Settings Dialog — configurable server URL
+// ---------------------------------------------------------------------------
+
+class _SettingsDialog extends StatefulWidget {
+  const _SettingsDialog();
+
+  @override
+  State<_SettingsDialog> createState() => _SettingsDialogState();
+}
+
+class _SettingsDialogState extends State<_SettingsDialog> {
+  late TextEditingController _urlController;
+  _ConnectionStatus _status = _ConnectionStatus.idle;
+
+  @override
+  void initState() {
+    super.initState();
+    _urlController = TextEditingController(text: BackendConfig.baseUrl);
+  }
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _testConnection() async {
+    setState(() => _status = _ConnectionStatus.testing);
+    final ok = await BackendConfig.setBaseUrl(_urlController.text.trim());
+    if (!mounted) return;
+    setState(() {
+      _status = ok ? _ConnectionStatus.success : _ConnectionStatus.failure;
+    });
+  }
+
+  Future<void> _save() async {
+    final url = _urlController.text.trim();
+    if (url.isEmpty) return;
+
+    setState(() => _status = _ConnectionStatus.testing);
+    final ok = await BackendConfig.setBaseUrl(url);
+    if (!mounted) return;
+
+    if (ok) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Server URL saved successfully.'),
+          backgroundColor: Color(0xFF2E7D32),
+        ),
+      );
+    } else {
+      setState(() => _status = _ConnectionStatus.failure);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Row(
+        children: [
+          Icon(Icons.settings, size: 22, color: Color(0xFF1565C0)),
+          SizedBox(width: 8),
+          Text('Server Settings'),
+        ],
+      ),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Backend URL',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _urlController,
+              decoration: InputDecoration(
+                hintText: 'https://your-server:8443',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                isDense: true,
+              ),
+              keyboardType: TextInputType.url,
+            ),
+            const SizedBox(height: 12),
+
+            // Test Connection button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _status == _ConnectionStatus.testing
+                    ? null
+                    : _testConnection,
+                icon: _status == _ConnectionStatus.testing
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.wifi_find, size: 18),
+                label: const Text('Test Connection'),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Status chip
+            if (_status == _ConnectionStatus.success)
+              const Chip(
+                avatar: Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 18),
+                label: Text('Connected — model loaded'),
+                backgroundColor: Color(0xFFE8F5E9),
+              ),
+            if (_status == _ConnectionStatus.failure)
+              const Chip(
+                avatar: Icon(Icons.error, color: Color(0xFFC62828), size: 18),
+                label: Text('Connection failed'),
+                backgroundColor: Color(0xFFFFEBEE),
+              ),
+
+            const SizedBox(height: 8),
+            Text(
+              'Default: $kDefaultBackendUrl',
+              style: const TextStyle(fontSize: 11, color: Colors.black45),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _status == _ConnectionStatus.testing ? null : _save,
+          child: const Text('Save'),
+        ),
+      ],
+    );
+  }
+}
+
+enum _ConnectionStatus { idle, testing, success, failure }

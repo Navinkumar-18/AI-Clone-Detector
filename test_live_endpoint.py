@@ -24,9 +24,17 @@ import io
 import struct
 import sys
 import time
+import warnings
 
 import numpy as np
 import requests
+import urllib3
+
+# Suppress SSL warnings when testing against self-signed certs
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Module-level flag: set True when testing against a self-signed HTTPS backend
+_VERIFY_SSL = True
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -83,7 +91,7 @@ def test_health(base_url: str) -> bool:
     """Test 1: Health check returns model_loaded=true."""
     print("\n--- Test 1: Health Check ---")
     try:
-        r = requests.get(f"{base_url}/health", timeout=10)
+        r = requests.get(f"{base_url}/health", timeout=10, verify=_VERIFY_SSL)
         assert r.status_code == 200, f"Expected 200, got {r.status_code}"
         data = r.json()
         assert data.get("status") == "ok", f"Status is not 'ok': {data}"
@@ -104,12 +112,13 @@ def test_live_analyze_schema(base_url: str) -> bool:
             f"{base_url}/live/analyze",
             files={"file": ("test.wav", wav, "audio/wav")},
             timeout=30,
+            verify=_VERIFY_SSL,
         )
         assert r.status_code == 200, f"Expected 200, got {r.status_code}"
         data = r.json()
 
         required_keys = ["label", "confidence", "risk_level", "detection_score",
-                         "prob_real", "prob_fake", "action"]
+                         "prob_real", "prob_fake", "action", "risk_category", "risk_percentage"]
         for key in required_keys:
             assert key in data, f"Missing key: {key}"
 
@@ -118,8 +127,10 @@ def test_live_analyze_schema(base_url: str) -> bool:
         assert data["risk_level"] in ("low", "medium", "high"), f"Invalid risk: {data['risk_level']}"
         assert 0.0 <= data["detection_score"] <= 1.0, f"Score out of range: {data['detection_score']}"
         assert data["action"] in ("allow", "verify", "block"), f"Invalid action: {data['action']}"
+        assert data["risk_category"] in ("Low Risk", "Medium Risk", "Critical"), f"Invalid risk_category: {data['risk_category']}"
+        assert 0.0 <= data["risk_percentage"] <= 100.0, f"Invalid risk_percentage: {data['risk_percentage']}"
 
-        print(f"  PASSED — {fmt_result(data)}")
+        print(f"  PASSED — {fmt_result(data)} | category={data['risk_category']}, pct={data['risk_percentage']}%")
         return True
     except Exception as e:
         print(f"  FAILED — {e}")
@@ -135,6 +146,7 @@ def test_live_action_consistency(base_url: str) -> bool:
             f"{base_url}/live/analyze",
             files={"file": ("test.wav", wav, "audio/wav")},
             timeout=30,
+            verify=_VERIFY_SSL,
         )
         data = r.json()
         expected_action = {"low": "allow", "medium": "verify", "high": "block"}
@@ -158,13 +170,18 @@ def test_predict_still_works(base_url: str) -> bool:
             f"{base_url}/predict",
             files={"file": ("test.wav", wav, "audio/wav")},
             timeout=30,
+            verify=_VERIFY_SSL,
         )
         assert r.status_code == 200, f"Expected 200, got {r.status_code}"
         data = r.json()
         assert "label" in data, "Missing 'label' in /predict response"
         assert "confidence" in data, "Missing 'confidence' in /predict response"
         assert "risk_level" in data, "Missing 'risk_level' in /predict response"
-        print(f"  PASSED — label={data['label']}, confidence={data['confidence']:.4f}, risk={data['risk_level']}")
+        assert "risk_category" in data, "Missing 'risk_category' in /predict response"
+        assert "risk_percentage" in data, "Missing 'risk_percentage' in /predict response"
+        assert data["risk_category"] in ("Low Risk", "Medium Risk", "Critical"), f"Invalid risk_category: {data['risk_category']}"
+        assert 0.0 <= data["risk_percentage"] <= 100.0, f"Invalid risk_percentage: {data['risk_percentage']}"
+        print(f"  PASSED — label={data['label']}, confidence={data['confidence']:.4f}, risk={data['risk_level']}, category={data['risk_category']}, pct={data['risk_percentage']}%")
         return True
     except Exception as e:
         print(f"  FAILED — {e}")
@@ -180,6 +197,7 @@ def test_short_audio(base_url: str) -> bool:
             f"{base_url}/live/analyze",
             files={"file": ("short.wav", wav, "audio/wav")},
             timeout=30,
+            verify=_VERIFY_SSL,
         )
         # Should either succeed (200) or return a handled error (422), not crash (500)
         assert r.status_code in (200, 422), f"Unexpected status: {r.status_code}"
@@ -207,6 +225,7 @@ def test_multiple_chunks(base_url: str) -> bool:
                 f"{base_url}/live/analyze",
                 files={"file": (f"chunk_{i}.wav", wav, "audio/wav")},
                 timeout=30,
+                verify=_VERIFY_SSL,
             )
             latency = time.time() - t0
             assert r.status_code == 200, f"Chunk {i} failed with status {r.status_code}"
@@ -228,12 +247,19 @@ def test_multiple_chunks(base_url: str) -> bool:
 # ---------------------------------------------------------------------------
 
 def main():
+    global _VERIFY_SSL
     parser = argparse.ArgumentParser(description="Test /live/analyze endpoint")
     parser.add_argument("--url", default="http://localhost:8000",
                         help="Backend base URL (default: http://localhost:8000)")
     args = parser.parse_args()
 
     base_url = args.url.rstrip("/")
+
+    # Auto-disable SSL verification for self-signed certs when using HTTPS
+    if base_url.startswith("https://"):
+        _VERIFY_SSL = False
+        print("  (SSL verification disabled for self-signed cert)")
+
     print(f"\nTesting backend at: {base_url}")
     print("=" * 60)
 

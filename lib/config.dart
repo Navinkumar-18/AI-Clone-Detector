@@ -1,27 +1,30 @@
-/// Backend base URL configuration.
+/// Backend configuration for VoiceGuard.
 ///
-/// Choose the appropriate URL for your environment:
-///
-/// 1. Physical Android Phone (Wi-Fi / LAN):
-///    Must point to your Windows PC's IPv4 address on the same local network.
-///    Find your PC's IP via `ipconfig` in PowerShell (e.g. Wireless LAN adapter Wi-Fi).
-///
-/// 2. Android Emulator:
-///    Uses 'http://10.0.2.2:8000' (special emulator alias routing to host 127.0.0.1).
-///
-/// 3. Web / Desktop:
-///    Uses 'http://localhost:8000'.
-const String kEmulatorBackendUrl = 'http://10.0.2.2:8000';
+/// Contains:
+///   - [BackendConfig]: singleton managing the server URL (persisted via SharedPreferences).
+///   - Compile-time fallback URLs and live-call-analysis constants.
+library;
 
-/// Physical Android device LAN URL.
-/// Update this if your PC's LAN IP changes (e.g. on a different Wi-Fi router).
-const String kPhysicalDeviceBackendUrl = 'http://192.168.137.45:8000';
+import 'dart:convert';
+import 'dart:io';
 
-/// Active backend URL used across all API calls.
-/// Defaults to [kPhysicalDeviceBackendUrl] for physical device testing.
-/// Can also be overridden at build/run time via:
-///   flutter run --dart-define=BACKEND_URL=http://10.0.2.2:8000
-const String kBackendBaseUrl = String.fromEnvironment(
+import 'package:shared_preferences/shared_preferences.dart';
+
+// ---------------------------------------------------------------------------
+// Default backend URLs (compile-time constants, internal fallbacks only)
+// ---------------------------------------------------------------------------
+
+/// Default URL for the Android Emulator (10.0.2.2 aliases host loopback).
+const String kEmulatorBackendUrl = 'https://10.0.2.2:8443';
+
+/// Default URL for a physical Android device on the same LAN.
+/// Update this if your PC's LAN IP changes.
+const String kPhysicalDeviceBackendUrl = 'https://192.168.137.45:8443';
+
+/// Default backend URL used as the initial fallback.
+/// Can be overridden at build/run time via:
+///   flutter run --dart-define=BACKEND_URL=https://10.0.2.2:8443
+const String kDefaultBackendUrl = String.fromEnvironment(
   'BACKEND_URL',
   defaultValue: kPhysicalDeviceBackendUrl,
 );
@@ -54,3 +57,73 @@ const int kHealthCheckIntervalSec = 5;
 /// Request timeout for live chunk analysis — shorter than full-file predict
 /// because chunks are small (4 seconds of audio).
 const Duration kLiveRequestTimeout = Duration(seconds: 15);
+
+// ---------------------------------------------------------------------------
+// BackendConfig — runtime-configurable server URL
+// ---------------------------------------------------------------------------
+
+/// SharedPreferences key for the persisted backend URL.
+const String _kBackendUrlKey = 'voiceguard_backend_url';
+
+/// Singleton managing the active backend URL.
+///
+/// [init] must be called once at startup (before runApp).  After that,
+/// [baseUrl] returns the current URL and [setBaseUrl] validates + saves
+/// a new URL (checking /health before committing).
+class BackendConfig {
+  BackendConfig._();
+
+  static String _baseUrl = kDefaultBackendUrl;
+
+  /// Current active backend base URL (no trailing slash).
+  static String get baseUrl => _baseUrl;
+
+  /// Load any previously-saved URL from SharedPreferences.
+  /// Must be called once before runApp().
+  static Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_kBackendUrlKey);
+    if (saved != null && saved.isNotEmpty) {
+      _baseUrl = saved;
+    }
+  }
+
+  /// Validate [url] by hitting its /health endpoint, then persist if healthy.
+  ///
+  /// Returns `true` on success, `false` if the URL is unreachable or invalid.
+  static Future<bool> setBaseUrl(String url) async {
+    // Normalize: strip trailing slash
+    final normalized = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+
+    // Validate by calling /health
+    try {
+      final client = HttpClient()
+        // DEMO-ONLY: accepts self-signed cert unconditionally, not for production use.
+        ..badCertificateCallback = (cert, host, port) => true;
+      final request = await client.getUrl(Uri.parse('$normalized/health'));
+      final response = await request.close().timeout(const Duration(seconds: 5));
+      final body = await response.transform(utf8.decoder).join();
+      client.close();
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(body) as Map<String, dynamic>;
+        if (json['model_loaded'] == true) {
+          _baseUrl = normalized;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(_kBackendUrlKey, normalized);
+          return true;
+        }
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Reset to the compile-time default and clear persisted value.
+  static Future<void> resetToDefault() async {
+    _baseUrl = kDefaultBackendUrl;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kBackendUrlKey);
+  }
+}
