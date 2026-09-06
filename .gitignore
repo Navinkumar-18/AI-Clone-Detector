@@ -141,6 +141,19 @@ logs/
 secrets.json
 config.local.*
 
+# TLS certificates and private keys (NEVER track private keys)
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Server logs
+server.log
+
+# Temporary test audio
+temp_test_audio/
+
 # Compiled binaries
 *.exe
 *.dll

@@ -1,132 +1,153 @@
-# Audio Deepfake / Voice-Clone Detector (MVP)
+# VoiceGuard — Real-Time Voice-Clone & Audio-Deepfake Risk Detection
 
-A lightweight, research-grade MVP codebase for classifying short audio clips as **Bonafide** (real human speech) or **Spoof** (AI-generated/cloned synthetic speech).
-
-Built using **frozen self-supervised speech representations (WavLM-base)**, fixed-length **sequence mean-pooling**, a lightweight **PyTorch 2-layer MLP classifier head**, and evaluated using **Equal Error Rate (EER)**.
-
----
-
-## 📌 Technical Pipeline Overview
-
-```
- [Input Audio (.flac / .wav)]
-              │
-              ▼
-  [Resample to 16kHz Mono]
-              │
-              ▼
-  [Frozen WavLM-Base Backbone] ────► Pretrained SSL representations (95M params)
-              │
-              ▼
-    [Sequence Mean-Pooling]    ────► Condenses (Seq_Len, 768) to (768,) embedding vector
-              │
-              ▼
-  [Model-Versioned Disk Cache] ────► Saves X_train_wavlm_base.npy & y_train_wavlm_base.npy
-              │
-              ▼
- [PyTorch 2-Layer MLP Head]   ────► Linear(768->128) -> ReLU -> Dropout(0.3) -> Linear(128->1)
-              │
-              ▼
- [Label & Confidence Score]   ────► Output: "bonafide" / "spoof" + confidence %
-```
+> **Smart India Hackathon (SIH 2026) Prototype Solution**  
+> *Privacy-aware, real-time risk assessment and step-up verification for AI voice-clone impersonation attacks in financial and emergency transactions.*
 
 ---
 
-## 🛠️ Environment Setup & Installation
+## 📌 Executive Summary
 
-### 1. Requirements
-Ensure Python 3.9+ and PyTorch are installed. Install dependencies via:
+With the advent of commercial generative speech models and one-shot voice cloning, malicious actors can clone a trusted person's voice from a 3-second audio snippet to bypass verbal authentication, deceive call center operators, and execute fraudulent money transfers.
 
+**VoiceGuard** is an end-to-end security system combining deep learning acoustic artifact detection, audio quality gating, multi-window risk aggregation, and step-up challenge verification to mitigate voice cloning fraud without storing caller voiceprints.
+
+```
+ [Live Audio Stream / Audio File]
+               │
+               ▼
+   [Audio Quality Pre-Filter] ────► Digital silence / low SNR ──► [INSUFFICIENT_EVIDENCE]
+               │ (Acceptable Quality)
+               ▼
+   [wav2vec2 Feature Extractor] ──► Ephemeral inference off event loop
+               │
+               ▼
+    [Acoustic Deepfake Model]  ──► Softmax Spoof Score & Confidence
+               │
+               ▼
+  [Client-Side Risk Aggregator] ──► Multi-window temporal persistence & cooldown
+               │
+               ▼
+   [Action / Decision Matrix]  ──► LOW_RISK / VERIFICATION_REQUIRED / ACTION_HELD
+```
+
+---
+
+## 🛡️ Core Pillars & Architecture
+
+### 1. Zero-Persistence Privacy Architecture
+- **No Voice Biometrics**: VoiceGuard does not enroll, map, or store voice templates or biometric identifiers.
+- **Ephemeral Processing**: Uploaded audio is processed strictly within a transient request scope and immediately purged from disk.
+- **Audit-Logged Deletion**: An explicit `PRIVACY` log verifies file unlinking at the conclusion of every request.
+
+### 2. Audio Quality & Insufficient-Evidence Gating
+Traditional ML classifiers often produce confident but meaningless predictions when fed silence, white noise, or truncated buffers. VoiceGuard implements strict pre-inference signal validation in `audio_quality.py`:
+- **Silence & Low-Energy Detection**: RMS energy below threshold immediately returns `insufficient_evidence` with `no_speech` reason code.
+- **Clipping & Distortion Monitoring**: Rejects saturated waveforms that degrade acoustic features.
+- **Speech Voicing Check**: Confirms harmonic speech presence before running heavy transformers.
+- **Safety Guarantee**: Digital silence **never** yields a "bonafide" result and **never** clears an active security hold.
+
+### 3. Client-Side Risk Aggregator & Fraud Protection
+- **No Single-Spike False Triggers**: A single anomaly or audio glitch cannot freeze a high-value transaction.
+- **Persistent Confirmation**: Requires $N$ consecutive high-risk sliding windows (default $N=2$) before elevating to `ACTION_HELD`.
+- **Step-Up Verification**: Rather than abrupt call termination, VoiceGuard triggers secondary out-of-band verification (SMS OTP, security questions, in-app challenge).
+- **Hysteresis Cooldown**: Restoring trust requires sustained clean windows ($M=3$), preventing attack oscillations.
+
+### 4. Enterprise Security Defaults
+- **Scoped TLS Bypass**: Flutter bypasses self-signed certificates **only** in local demo mode (`kDemoMode`), guarded by compile-time assertions for release builds.
+- **DoS Safeguards**: Enforces strict upload limits (10 MB maximum) via streaming chunk verification, concurrency limits via async semaphores, and rate-limiting per client IP.
+- **Audited Secrets**: `.gitignore` strictly blocks all `.pem`, `.crt`, and `.key` artifacts.
+
+---
+
+## 📊 Model Evaluation & Honest Technical Disclosure
+
+VoiceGuard utilizes the `garystafford/wav2vec2-deepfake-voice-detector` pre-trained architecture.
+
+> [!IMPORTANT]
+> **Evaluation Status**:  
+> The committed threshold report (`threshold_report.txt`) records a 100% false-positive rate at the reviewed threshold (0.40). A complete threshold sweep must be regenerated before making any claim about all thresholds.  
+> The available evaluation artifact shows substantial score overlap between bona-fide and spoof samples, indicating poor class separation under this evaluation.
+
+### Responsible Claims Guidance
+- **What VoiceGuard Does**: Measures acoustic deepfake characteristics and triggers step-up verification when synthetic speech indicators are detected.
+- **What VoiceGuard Does Not Claim**: Does not verify caller identity, does not claim calibrated probability distributions, and does not claim flawless accuracy across out-of-domain telephony or Indian regional languages without domain fine-tuning.
+
+For comprehensive analysis, see [`docs/MODEL_EVALUATION.md`](file:///c:/Users/akina/sih2026/docs/MODEL_EVALUATION.md) and [`docs/KNOWN_LIMITATIONS.md`](file:///c:/Users/akina/sih2026/docs/KNOWN_LIMITATIONS.md).
+
+---
+
+## 🚀 Quick Start Guide
+
+### Prerequisites
+- Python 3.10+
+- Flutter 3.x with Dart 3.x
+- Git
+
+### 1. Install Dependencies
 ```bash
+# Python Backend Dependencies
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
+# Flutter Client Dependencies
+flutter pub get
 ```
 
-Core dependencies: `torch`, `torchaudio`, `transformers`, `scikit-learn`, `librosa`, `soundfile`, `matplotlib`, `scipy`, `tqdm`.
-
----
-
-## 📂 Dataset Setup (ASVspoof 2019 LA)
-
-Download the **ASVspoof 2019 Logical Access (LA)** dataset from official sources or Kaggle/Zenodo and extract it into the `./data/asvspoof2019LA` folder.
-
-Expected directory structure:
-```
-data/
-└── asvspoof2019LA/
-    ├── LA/
-    │   ├── ASVspoof2019_LA_cm_protocols/
-    │   │   ├── ASVspoof2019.LA.cm.train.trn.txt
-    │   │   ├── ASVspoof2019.LA.cm.dev.trl.txt
-    │   │   └── ASVspoof2019.LA.cm.eval.trl.txt
-    │   ├── ASVspoof2019_LA_train/flac/
-    │   ├── ASVspoof2019_LA_dev/flac/
-    │   └── ASVspoof2019_LA_eval/flac/
-```
-
-*(Note: The codebase automatically detects layout variations and supports both `.flac` and `.wav` formats).*
-
----
-
-## 🚀 Execution Guide (Step-by-Step)
-
-### Step 1: Explore Data & Sanity-Check Split Sizes
-Parse dataset protocols, check class balances, verify physical audio files on disk against standard benchmark counts, and plot comparative waveforms + Mel-Spectrograms:
-
+### 2. Start the Backend Server
 ```bash
-python explore_data.py --data_dir ./data/asvspoof2019LA
+python backend.py
 ```
-*Outputs: Printed split sanity report & `data_visualization.png`.*
+*The server automatically generates a self-signed TLS cert if needed and binds to `https://0.0.0.0:8443`.*  
+*(For development without HTTPS: `VOICEGUARD_DEV_MODE=1 python backend.py` on port `8000`).*
 
-### Step 2: Extract & Cache SSL Embeddings
-Pass audio clips through frozen `microsoft/wavlm-base` and save mean-pooled 768-dim embeddings:
-
+Verify that the backend is ready:
 ```bash
-python extract_features.py --data_dir ./data/asvspoof2019LA --model_name microsoft/wavlm-base
-```
-*Outputs: Versioned disk cache files in `./data/features/` (`X_train_wavlm_base.npy`, `y_train_wavlm_base.npy`, etc.).*
-
-### Step 3: Train Classifier Head & Evaluate EER
-Train Scikit-Learn `LogisticRegression` baseline and PyTorch 2-layer `DeepfakeMLPClassifier`. Early stopping is monitored on Dev EER, and final metrics (Accuracy, F1, AUC, EER) are reported on Eval:
-
-```bash
-python train_classifier.py --model_name microsoft/wavlm-base --epochs 25
-```
-*Outputs: Saved model checkpoints in `./models/best_mlp_wavlm_base.pt` and `logistic_regression_wavlm_base.joblib`.*
-
-### Step 4: Run Real Automated Smoke Test Suite
-Verify end-to-end audio loading, 16kHz resampling, mono conversion, feature extraction, and prediction on real audio files:
-
-```bash
-python predict.py --test
+curl -k https://localhost:8443/ready
 ```
 
-### Step 5: Run Single-Clip Inference
-Classify any custom `.wav` or `.flac` audio clip:
-
+### 3. Launch the Flutter Application
 ```bash
-python predict.py --audio /path/to/sample.wav
+# Run on Windows desktop
+flutter run -d windows
+
+# Or run in Chrome / Web
+flutter run -d chrome
 ```
 
 ---
 
-## 🎓 Hackathon Review & Defense Guide (Q&A Cheat Sheet)
+## 🧪 Verification & Test Suite
 
-This section explains key architectural decisions in plain language so non-ML teammates can confidently defend every choice during code reviews and judge evaluations.
+The project includes a comprehensive 54-test automated Python test suite and zero-warning Flutter static analysis:
 
-### Q1: Why freeze the WavLM backbone instead of fine-tuning it?
-- **Compute Efficiency**: WavLM-base has ~95 million parameters. Fine-tuning 95M parameters requires massive VRAM and hours of training. Freezing the backbone lets our model train in under 2 minutes on a free Google Colab T4 GPU.
-- **Preventing Overfitting**: Pretrained SSL models (trained on 940+ hours of speech) already possess rich acoustic and phase representations. Fine-tuning on a small dataset risks "memorizing" specific channel noise or speakers rather than learning general deepfake artifacts.
+```bash
+# Run all unit and integration tests
+python -m pytest tests/ -v
 
-### Q2: Why use Mean-Pooling across time frames?
-- Audio clips have variable durations (e.g. 2s vs 5s). WavLM outputs sequence hidden states of shape `(Batch, Time_Frames, 768)`.
-- Mean-pooling computes the average across time frames $\frac{1}{T} \sum_{t=1}^{T} H_t$, producing a single fixed-length 768-dimensional vector per clip. This captures overall spectral and synthetic acoustic traits without needing dynamic padding or complex sequence models.
+# Run Flutter / Dart static analysis
+dart analyze
+```
 
-### Q3: Why version cached feature files (e.g. `X_train_wavlm_base.npy`)?
-- If we test different backbones later (e.g. switching from `microsoft/wavlm-base` to `facebook/wav2vec2-base`), model-versioned filenames ensure that stale, incompatible embeddings from a previous backbone are never silently reused.
+### Test Coverage Highlights:
+- `tests/test_backend.py`: Endpoints (`/health`, `/ready`, `/predict`, `/live/analyze`), rate limiting, upload limits, request tracing, mock inference.
+- `tests/test_audio_quality.py`: Digital silence, clipping, SNR, duration gates, `insufficient_evidence` behavior.
+- `tests/test_risk_aggregator.py`: Persistence windows, cooldown recovery, silence resilience, backend error states.
+- `tests/test_api_schema.py`: Canonical Pydantic schema validation, config synchronization, Flutter cross-compatibility.
+- `tests/test_security_config.py`: Secure defaults, demo mode guards, CORS restrictions.
 
-### Q4: Why is Equal Error Rate (EER) used instead of Accuracy alone?
-- **Class Imbalance**: In security datasets, spoof clips heavily outnumber bonafide clips (e.g., 90% spoof vs 10% bonafide). A dummy model predicting "spoof" 100% of the time gets 90% Accuracy but fails completely in real-world security.
-- **Biometric Standard**: Equal Error Rate (EER) is the threshold point where False Acceptance Rate (FAR, accepting fake audio) equals False Rejection Rate (FRR, rejecting real audio). EER measures true biometric security capability independent of class imbalance or threshold choice.
+---
 
-### Q5: What is the "Suspiciously Good EER" warning?
-- In ASVspoof 2019 LA, speaker IDs in train, dev, and eval sets are strictly **disjoint** (no speaker overlap). If custom data splits leak the same speaker's voice into both train and test sets, the model learns speaker recognition instead of spoof detection, producing artificially near-0% EER. Our `train_classifier.py` automatically flags a warning if Eval EER drops below 2.0% to catch data leakage before presenting to judges.
+## 📖 Documentation Index
+
+- [Architecture & Data Flow](file:///c:/Users/akina/sih2026/docs/ARCHITECTURE.md)
+- [Hackathon Demo Walkthrough & Judge Q&A](file:///c:/Users/akina/sih2026/docs/DEMO_GUIDE.md)
+- [API Reference Specification](file:///c:/Users/akina/sih2026/docs/API_REFERENCE.md)
+- [Model Evaluation & Claims](file:///c:/Users/akina/sih2026/docs/MODEL_EVALUATION.md)
+- [Known Limitations & Roadmap](file:///c:/Users/akina/sih2026/docs/KNOWN_LIMITATIONS.md)
+- [Security Remediation Audit](file:///c:/Users/akina/sih2026/docs/SECURITY_REMEDIATION.md)
+- [Implementation Audit Trail](file:///c:/Users/akina/sih2026/docs/IMPLEMENTATION_AUDIT.md)
+
+---
+
+## ⚖️ License & Ethical Usage
+This software prototype is built for educational, defensive, and fraud-mitigation research in accordance with Smart India Hackathon guidelines.

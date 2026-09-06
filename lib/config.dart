@@ -3,11 +3,13 @@
 /// Contains:
 ///   - [BackendConfig]: singleton managing the server URL (persisted via SharedPreferences).
 ///   - Compile-time fallback URLs and live-call-analysis constants.
+///   - Demo mode flag controlling TLS bypass behavior.
 library;
 
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ---------------------------------------------------------------------------
@@ -60,6 +62,7 @@ const int kLiveChunkDurationSec = 4;
 const int kLiveAnalysisIntervalSec = 2;
 
 /// Sample rate for live audio capture — must match backend's SAMPLE_RATE.
+/// This value is obtained from config/model_config.yaml via the backend.
 const int kLiveSampleRate = 16000;
 
 /// How often to check backend connectivity during a live call (seconds).
@@ -68,6 +71,19 @@ const int kHealthCheckIntervalSec = 5;
 /// Request timeout for live chunk analysis — shorter than full-file predict
 /// because chunks are small (4 seconds of audio).
 const Duration kLiveRequestTimeout = Duration(seconds: 15);
+
+// ---------------------------------------------------------------------------
+// Demo mode — controls TLS bypass and UI indicators
+// ---------------------------------------------------------------------------
+
+/// Demo mode flag. Defaults to FALSE (secure by default).
+/// Insecure TLS bypass is DISABLED by default.
+///
+/// To enable for local testing with self-signed certificates:
+///   flutter run --dart-define=DEMO_MODE=true
+///
+/// This must NEVER be enabled in release/production builds.
+const bool kDemoMode = bool.fromEnvironment('DEMO_MODE', defaultValue: false);
 
 // ---------------------------------------------------------------------------
 // BackendConfig — runtime-configurable server URL
@@ -108,9 +124,12 @@ class BackendConfig {
 
     // Validate by calling /health
     try {
-      final client = HttpClient()
-        // DEMO-ONLY: accepts self-signed cert unconditionally, not for production use.
-        ..badCertificateCallback = (cert, host, port) => true;
+      final client = HttpClient();
+      // Scoped only to target host and only when demo mode is active
+      if (kDemoMode && !kReleaseMode) {
+        final targetHost = Uri.parse(normalized).host;
+        client.badCertificateCallback = (cert, host, port) => host == targetHost;
+      }
       final request = await client.getUrl(Uri.parse('$normalized/health'));
       final response = await request.close().timeout(const Duration(seconds: 5));
       final body = await response.transform(utf8.decoder).join();

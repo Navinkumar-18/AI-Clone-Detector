@@ -3,27 +3,44 @@
 /// Demonstrates the "prevention" part of the SIH problem statement:
 ///   Detection → Risk Assessment → Prevention
 ///
-/// The transaction button state is controlled by the current call-level risk:
-///   LOW    → 🟢 TRANSACTION PERMITTED  → CONFIRM TRANSFER (enabled)
-///   MEDIUM → 🟠 VERIFICATION REQUIRED  → VERIFY CALLER    (warning)
-///   HIGH   → 🛑 TRANSACTION BLOCKED    → disabled/greyed
+/// The transaction button state is controlled by the current call-level decision:
+///   LOW_RISK              → CONTINUE WITH CAUTION (enabled, demo only)
+///   VERIFICATION_REQUIRED → VERIFY CALLER (warning dialog with options)
+///   ACTION_HELD           → TRANSACTION HELD (disabled)
+///   INSUFFICIENT_EVIDENCE → CANNOT ASSESS (disabled)
 ///
 /// This is a DEMO transaction only. No real bank API, no real money.
+/// Clearly labeled: "Demo mode — no real financial transaction is executed."
 library;
 
 import 'package:flutter/material.dart';
 import 'risk_indicator.dart';
 
 class TransactionCard extends StatelessWidget {
-  final String riskLevel; // "low" | "medium" | "high"
+  final String riskLevel; // "low" | "medium" | "high" | "unknown"
+  final String decision;  // "low_risk" | "verification_required" | "action_held" | "insufficient_evidence"
+  final List<String> reasonCodes;
+  final int evidenceWindows;
 
-  const TransactionCard({super.key, required this.riskLevel});
+  const TransactionCard({
+    super.key,
+    required this.riskLevel,
+    this.decision = '',
+    this.reasonCodes = const [],
+    this.evidenceWindows = 0,
+  });
+
+  String get _effectiveDecision =>
+      decision.isNotEmpty ? decision : _decisionFromRisk(riskLevel);
 
   @override
   Widget build(BuildContext context) {
-    final color = RiskIndicator.riskColor(riskLevel);
-    final isBlocked = riskLevel == 'high';
-    final needsVerify = riskLevel == 'medium';
+    final effectiveDecision = _effectiveDecision;
+    final color = RiskIndicator.riskColor(riskLevel == 'unknown' ? 'unknown' : riskLevel);
+    final isHeld = effectiveDecision == 'action_held';
+    final isInsufficient = effectiveDecision == 'insufficient_evidence';
+    final needsVerify = effectiveDecision == 'verification_required';
+    final isDisabled = isHeld || isInsufficient;
 
     return Container(
       width: double.infinity,
@@ -31,9 +48,11 @@ class TransactionCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isBlocked
-              ? const Color(0xFFC62828).withValues(alpha: 0.3)
-              : Colors.grey.withValues(alpha: 0.2),
+          color: isDisabled
+              ? Colors.grey.withValues(alpha: 0.3)
+              : isHeld
+                  ? const Color(0xFFC62828).withValues(alpha: 0.3)
+                  : Colors.grey.withValues(alpha: 0.2),
           width: 1.5,
         ),
         boxShadow: [
@@ -47,7 +66,7 @@ class TransactionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
+          // Header with demo label
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -55,17 +74,32 @@ class TransactionCard extends StatelessWidget {
               color: const Color(0xFF1A237E).withValues(alpha: 0.05),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
             ),
-            child: const Row(
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.account_balance, size: 18, color: Color(0xFF1A237E)),
-                SizedBox(width: 8),
+                Row(
+                  children: [
+                    Icon(Icons.account_balance, size: 18, color: Color(0xFF1A237E)),
+                    SizedBox(width: 8),
+                    Text(
+                      'SENSITIVE TRANSACTION',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A237E),
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4),
                 Text(
-                  'SENSITIVE TRANSACTION',
+                  'Demo mode — no real financial transaction is executed',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A237E),
-                    letterSpacing: 1,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF9E9E9E),
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],
@@ -80,9 +114,11 @@ class TransactionCard extends StatelessWidget {
               children: [
                 _detailRow('Receiver', 'ABC Suppliers'),
                 const SizedBox(height: 8),
-                _detailRow('Amount', '₹2,00,000'),
+                _detailRow('Amount', '\u20B92,00,000'),
                 const SizedBox(height: 8),
                 _detailRow('Purpose', 'Invoice Payment'),
+                const SizedBox(height: 8),
+                _detailRow('Evidence windows', '$evidenceWindows'),
                 const SizedBox(height: 16),
 
                 // Risk status banner
@@ -94,28 +130,45 @@ class TransactionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: color.withValues(alpha: 0.3)),
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        isBlocked
-                            ? Icons.block
-                            : needsVerify
-                                ? Icons.warning_amber_rounded
-                                : Icons.check_circle_outline,
-                        size: 18,
-                        color: color,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _statusText(riskLevel),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                      Row(
+                        children: [
+                          Icon(
+                            isHeld
+                                ? Icons.block
+                                : isInsufficient
+                                    ? Icons.help_outline
+                                    : needsVerify
+                                        ? Icons.warning_amber_rounded
+                                        : Icons.shield_outlined,
+                            size: 18,
                             color: color,
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _statusText(effectiveDecision),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: color,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
+                      if (reasonCodes.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          'Reason: ${reasonCodes.join(", ")}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: color.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -125,13 +178,13 @@ class TransactionCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: isBlocked
+                    onPressed: isDisabled
                         ? null
                         : needsVerify
                             ? () => _showVerifyDialog(context)
                             : () => _showSuccessDialog(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isBlocked
+                      backgroundColor: isDisabled
                           ? Colors.grey.shade300
                           : needsVerify
                               ? const Color(0xFFE65100)
@@ -145,7 +198,7 @@ class TransactionCard extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      _buttonText(riskLevel),
+                      _buttonText(effectiveDecision),
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
@@ -159,7 +212,7 @@ class TransactionCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 const Center(
                   child: Text(
-                    'DEMO ONLY — No real transaction',
+                    'DEMO ONLY — No real bank API or financial transaction',
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.grey,
@@ -198,19 +251,21 @@ class TransactionCard extends StatelessWidget {
     );
   }
 
-  String _statusText(String level) {
-    return switch (level) {
-      'high' => 'VOICE RISK: HIGH — TRANSACTION BLOCKED',
-      'medium' => 'VOICE RISK: MEDIUM — ADDITIONAL VERIFICATION REQUIRED',
-      _ => 'VOICE RISK: LOW — TRANSACTION PERMITTED',
+  String _statusText(String dec) {
+    return switch (dec) {
+      'action_held' => 'ACTION HELD — Persistent elevated spoof evidence',
+      'verification_required' => 'VERIFICATION REQUIRED — Independent verification needed',
+      'insufficient_evidence' => 'INSUFFICIENT EVIDENCE — Cannot assess voice risk',
+      _ => 'LOW SPOOF EVIDENCE — Continue with caution',
     };
   }
 
-  String _buttonText(String level) {
-    return switch (level) {
-      'high' => '🛑 TRANSACTION BLOCKED',
-      'medium' => '⚠ VERIFY CALLER',
-      _ => '✅ CONFIRM TRANSFER',
+  String _buttonText(String dec) {
+    return switch (dec) {
+      'action_held' => 'TRANSACTION HELD',
+      'verification_required' => 'VERIFY CALLER FIRST',
+      'insufficient_evidence' => 'CANNOT ASSESS',
+      _ => 'CONTINUE WITH CAUTION',
     };
   }
 
@@ -218,11 +273,42 @@ class TransactionCard extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Verification Required'),
-        content: const Text(
-          'Suspicious voice characteristics detected.\n\n'
-          'Please verify the caller through an independent channel '
-          '(e.g. callback, video call) before authorizing this transaction.',
+        title: const Text('Independent Verification Required'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Elevated spoof characteristics detected. '
+              'Verify the caller through an independent channel before '
+              'authorizing this transaction.\n',
+            ),
+            Text(
+              'Verification options:',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            SizedBox(height: 8),
+            _VerificationOption(
+              icon: Icons.phone_android,
+              text: 'Verify in the official banking app',
+            ),
+            _VerificationOption(
+              icon: Icons.contact_phone,
+              text: 'Call the saved contact number',
+            ),
+            _VerificationOption(
+              icon: Icons.people,
+              text: 'Contact a trusted person',
+            ),
+            _VerificationOption(
+              icon: Icons.key,
+              text: 'Use a pre-agreed verification phrase',
+            ),
+            _VerificationOption(
+              icon: Icons.cancel_outlined,
+              text: 'Cancel or delay the action',
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -240,19 +326,53 @@ class TransactionCard extends StatelessWidget {
       builder: (_) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.check_circle, color: Color(0xFF2E7D32)),
+            Icon(Icons.info_outline, color: Color(0xFF2E7D32)),
             SizedBox(width: 8),
-            Text('Transfer Initiated'),
+            Text('Demo Transfer'),
           ],
         ),
         content: const Text(
-          'Demo: ₹2,00,000 transfer to ABC Suppliers would proceed.\n\n'
-          'This is a demonstration only — no real money was transferred.',
+          'Demo: \u20B92,00,000 transfer to ABC Suppliers would proceed.\n\n'
+          'This is a demonstration only — no real money was transferred.\n'
+          'Low spoof evidence does not mean the caller is verified.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _decisionFromRisk(String riskLevel) {
+    return switch (riskLevel) {
+      'high' => 'action_held',
+      'medium' => 'verification_required',
+      'unknown' => 'insufficient_evidence',
+      _ => 'low_risk',
+    };
+  }
+}
+
+/// Simple verification option row.
+class _VerificationOption extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _VerificationOption({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.black54),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(text, style: const TextStyle(fontSize: 13)),
           ),
         ],
       ),

@@ -38,13 +38,13 @@ enum _CallState { idle, starting, active, ending, summary, error }
 // ---------------------------------------------------------------------------
 class _RiskEntry {
   final Duration timestamp;
-  final double detectionScore;
+  final double spoofScore;
   final String riskLevel;
   final String action;
 
   const _RiskEntry({
     required this.timestamp,
-    required this.detectionScore,
+    required this.spoofScore,
     required this.riskLevel,
     required this.action,
   });
@@ -83,10 +83,14 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   // -- risk aggregation --
   double _emaScore = 0.0;
   double _currentScore = 0.0;
-  String _callLevelRisk = 'low';
-  String _callLevelAction = 'allow';
+  String _callLevelRisk = 'unknown';
+  String _callLevelAction = 'unavailable';
+  String _callLevelDecision = 'insufficient_evidence';
+  List<String> _callLevelReasons = ['no_evidence_yet'];
   int _consecutiveHighCount = 0; // for persistence rule
   bool _persistenceTriggered = false;
+  int _cooldownRemaining = 0;
+  bool _wasActionHeld = false;
 
   // -- history --
   final List<_RiskEntry> _riskHistory = [];
@@ -172,11 +176,14 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     _pcmBuffer.clear();
     _riskHistory.clear();
     _emaScore = 0.0;
-    _currentScore = 0.0;
-    _callLevelRisk = 'low';
-    _callLevelAction = 'allow';
+    _callLevelRisk = 'unknown';
+    _callLevelAction = 'unavailable';
+    _callLevelDecision = 'insufficient_evidence';
+    _callLevelReasons = ['no_evidence_yet'];
     _consecutiveHighCount = 0;
     _persistenceTriggered = false;
+    _cooldownRemaining = 0;
+    _wasActionHeld = false;
     _callDuration = Duration.zero;
     _maxRisk = 'low';
     _highRiskWindows = 0;
@@ -376,16 +383,32 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     const alpha = 0.3;
     const highThreshold = 0.85;
     const mediumThreshold = 0.40;
+    const cooldownWindows = 3;
 
     // If chunk had no speech (silence / muted mic):
     // Do not escalate risk or advance persistence threat counter.
     if (!result.speechDetected) {
-      _consecutiveHighCount = 0;
-      _persistenceTriggered = false;
+      // Do NOT reset _consecutiveHighCount — preserve persistence state
+      // Per security requirement: silence after ACTION_HELD stays held.
+      setState(() {
+        if (_wasActionHeld || _callLevelAction == 'hold') {
+          _callLevelDecision = 'insufficient_evidence';
+          _callLevelAction = 'hold';
+          _callLevelRisk = 'high';
+          _callLevelReasons = const ['no_speech', 'action_remains_held'];
+        } else {
+          _callLevelDecision = 'insufficient_evidence';
+          _callLevelAction = 'unavailable';
+          _callLevelRisk = 'unknown';
+          _callLevelReasons = result.reasonCodes.isNotEmpty
+              ? result.reasonCodes
+              : const ['no_speech'];
+        }
+      });
       return;
     }
 
-    _currentScore = result.detectionScore;
+    _currentScore = result.spoofScore;
 
     // Layer 1: Update EMA
     if (_riskHistory.isEmpty) {
@@ -402,22 +425,52 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     }
     _persistenceTriggered = _consecutiveHighCount >= 2;
 
-    // Determine call-level risk
+    // Cooldown logic: recovering from ACTION_HELD requires consecutive clean windows
+    if (_cooldownRemaining > 0) {
+      if (_currentScore < mediumThreshold) {
+        _cooldownRemaining--;
+        if (_cooldownRemaining == 0) {
+          _wasActionHeld = false;
+        }
+      } else {
+        _cooldownRemaining = cooldownWindows;
+      }
+    }
+
+    // Determine call-level risk, action, and decision
     String risk;
     String action;
+    String decision;
+    List<String> reasons = [];
+
     if (_persistenceTriggered) {
-      // Persistence rule overrides EMA
       risk = 'high';
-      action = 'block';
+      action = 'hold';
+      decision = 'action_held';
+      _wasActionHeld = true;
+      _cooldownRemaining = cooldownWindows;
+      reasons = const ['persistent_high_spoof_evidence'];
+    } else if (_wasActionHeld && _cooldownRemaining > 0) {
+      // Cooldown in progress after hold
+      risk = 'medium';
+      action = 'verify';
+      decision = 'verification_required';
+      reasons = const ['recovering_from_action_held', 'cooldown_active'];
     } else if (_emaScore >= highThreshold) {
       risk = 'high';
-      action = 'block';
+      action = 'verify';
+      decision = 'verification_required';
+      reasons = const ['elevated_spoof_score'];
     } else if (_emaScore >= mediumThreshold) {
       risk = 'medium';
       action = 'verify';
+      decision = 'verification_required';
+      reasons = const ['independent_verification_required'];
     } else {
       risk = 'low';
-      action = 'allow';
+      action = 'allow_with_caution';
+      decision = 'low_risk';
+      reasons = const [];
     }
 
     // Track maximum risk
@@ -429,7 +482,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     // Add to history
     _riskHistory.add(_RiskEntry(
       timestamp: _callDuration,
-      detectionScore: _currentScore,
+      spoofScore: _currentScore,
       riskLevel: risk,
       action: action,
     ));
@@ -437,6 +490,8 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     setState(() {
       _callLevelRisk = risk;
       _callLevelAction = action;
+      _callLevelDecision = decision;
+      _callLevelReasons = reasons;
     });
   }
 
@@ -527,9 +582,9 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
 
   String _riskEmoji(String level) {
     return switch (level) {
-      'high' => '🔴',
-      'medium' => '🟠',
-      _ => '🟢',
+      'high' => '[H]',
+      'medium' => '[M]',
+      _ => '[L]',
     };
   }
 
@@ -936,7 +991,12 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
 
           // -- Mock transaction --
           if (_riskHistory.isNotEmpty)
-            TransactionCard(riskLevel: _callLevelRisk),
+            TransactionCard(
+              riskLevel: _callLevelRisk,
+              decision: _callLevelDecision,
+              reasonCodes: _callLevelReasons,
+              evidenceWindows: _riskHistory.length,
+            ),
           const SizedBox(height: 24),
 
           // -- End call button --
@@ -1026,7 +1086,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
           ),
           const SizedBox(height: 10),
           ...recentEntries.map((e) {
-            final scoreStr = (e.detectionScore * 100).toStringAsFixed(0);
+            final scoreStr = (e.spoofScore * 100).toStringAsFixed(0);
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 3),
               child: Row(
@@ -1148,10 +1208,10 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                       ),
                       child: Text(
                         _maxRisk == 'high'
-                            ? '🛑 BLOCKED'
+                            ? 'ACTION HELD'
                             : _maxRisk == 'medium'
-                                ? '⚠ VERIFY'
-                                : '✅ ALLOWED',
+                                ? 'VERIFY REQUIRED'
+                                : 'LOW EVIDENCE',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -1287,8 +1347,8 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                   ),
                 ),
                 child: const Text(
-                  '⚠ AI ENGINE OFFLINE\n'
-                  'Unable to verify voice.\n'
+                  'AI ENGINE OFFLINE\n'
+                  'Unable to assess voice.\n'
                   'Sensitive actions should not be permitted.',
                   textAlign: TextAlign.center,
                   style: TextStyle(

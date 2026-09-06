@@ -24,27 +24,11 @@ import 'config.dart';
 import 'screens/live_call_screen.dart';
 
 // ---------------------------------------------------------------------------
-// DEMO-ONLY: accepts self-signed cert unconditionally, not for production use.
-// This allows the app to communicate with a VoiceGuard backend running
-// behind a self-signed TLS certificate (e.g. local dev or ngrok tunnels).
-// ---------------------------------------------------------------------------
-class _DemoHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (cert, host, port) => true;
-  }
-}
-
-// ---------------------------------------------------------------------------
 // App root
 // ---------------------------------------------------------------------------
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // DEMO-ONLY: accept self-signed certs for local/ngrok HTTPS
-  HttpOverrides.global = _DemoHttpOverrides();
 
   // Load any previously-saved backend URL from SharedPreferences
   await BackendConfig.init();
@@ -557,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               // Verdict icon
               Icon(
-                isSpoof ? Icons.warning_rounded : Icons.verified_user,
+                isSpoof ? Icons.warning_rounded : Icons.shield_rounded,
                 size: 64,
                 color: color,
               ),
@@ -577,7 +561,7 @@ class _HomeScreenState extends State<HomeScreen>
 
               // Risk category label
               Text(
-                'Voice Authenticity Risk: $category',
+                'Spoof Detection Score: $category',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,

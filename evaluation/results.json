@@ -1,0 +1,1776 @@
+{
+  "metrics": {
+    "dataset": "ASVspoof 2019 LA eval",
+    "model_name": "garystafford/wav2vec2-deepfake-voice-detector",
+    "model_revision": "main",
+    "model_version": "voiceguard-v1",
+    "threshold_version": "threshold-v2",
+    "spoof_threshold": 0.3,
+    "n_genuine": 50,
+    "n_spoof": 200,
+    "n_errors": 0,
+    "accuracy": 0.62,
+    "precision": 0.7560975609756098,
+    "recall": 0.775,
+    "f1": 0.7654320987654321,
+    "fpr": 1.0,
+    "fnr": 0.225,
+    "tp": 155,
+    "tn": 0,
+    "fp": 50,
+    "fn": 45,
+    "mean_latency_ms": 554.1317024230957
+  },
+  "results": [
+    {
+      "filename": "LA_D_1090286",
+      "gt_label": "bonafide",
+      "prob_real": 0.09333285689353943,
+      "prob_fake": 0.906667172908783,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1119156",
+      "gt_label": "bonafide",
+      "prob_real": 0.16757984459400177,
+      "prob_fake": 0.8324201703071594,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1121887",
+      "gt_label": "bonafide",
+      "prob_real": 0.09950709342956543,
+      "prob_fake": 0.9004928469657898,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1133168",
+      "gt_label": "bonafide",
+      "prob_real": 0.10902707278728485,
+      "prob_fake": 0.890972912311554,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1173765",
+      "gt_label": "bonafide",
+      "prob_real": 0.16633100807666779,
+      "prob_fake": 0.8336690664291382,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1219450",
+      "gt_label": "bonafide",
+      "prob_real": 0.12282967567443848,
+      "prob_fake": 0.8771703243255615,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1232613",
+      "gt_label": "bonafide",
+      "prob_real": 0.13769268989562988,
+      "prob_fake": 0.8623072504997253,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1239754",
+      "gt_label": "bonafide",
+      "prob_real": 0.12198282778263092,
+      "prob_fake": 0.8780171871185303,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1245000",
+      "gt_label": "bonafide",
+      "prob_real": 0.13054244220256805,
+      "prob_fake": 0.8694575428962708,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1279882",
+      "gt_label": "bonafide",
+      "prob_real": 0.15504765510559082,
+      "prob_fake": 0.8449522852897644,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1306387",
+      "gt_label": "bonafide",
+      "prob_real": 0.14186878502368927,
+      "prob_fake": 0.8581311702728271,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1330775",
+      "gt_label": "bonafide",
+      "prob_real": 0.09003875404596329,
+      "prob_fake": 0.9099612832069397,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1335445",
+      "gt_label": "bonafide",
+      "prob_real": 0.12256479263305664,
+      "prob_fake": 0.8774352073669434,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1399387",
+      "gt_label": "bonafide",
+      "prob_real": 0.10490478575229645,
+      "prob_fake": 0.8950952291488647,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1409575",
+      "gt_label": "bonafide",
+      "prob_real": 0.13521385192871094,
+      "prob_fake": 0.8647861480712891,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1426585",
+      "gt_label": "bonafide",
+      "prob_real": 0.12721851468086243,
+      "prob_fake": 0.8727814555168152,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1472077",
+      "gt_label": "bonafide",
+      "prob_real": 0.08369950205087662,
+      "prob_fake": 0.9163004755973816,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1518150",
+      "gt_label": "bonafide",
+      "prob_real": 0.12108674645423889,
+      "prob_fake": 0.8789132237434387,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1614129",
+      "gt_label": "bonafide",
+      "prob_real": 0.09995494782924652,
+      "prob_fake": 0.9000450372695923,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1714000",
+      "gt_label": "bonafide",
+      "prob_real": 0.08178560435771942,
+      "prob_fake": 0.9182143807411194,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1789452",
+      "gt_label": "bonafide",
+      "prob_real": 0.17884697020053864,
+      "prob_fake": 0.8211530447006226,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1819301",
+      "gt_label": "bonafide",
+      "prob_real": 0.1630789339542389,
+      "prob_fake": 0.8369210958480835,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1879957",
+      "gt_label": "bonafide",
+      "prob_real": 0.18933387100696564,
+      "prob_fake": 0.8106661438941956,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1884465",
+      "gt_label": "bonafide",
+      "prob_real": 0.18615880608558655,
+      "prob_fake": 0.8138412237167358,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1975885",
+      "gt_label": "bonafide",
+      "prob_real": 0.12862275540828705,
+      "prob_fake": 0.8713772892951965,
+      "error": null
+    },
+    {
+      "filename": "LA_D_1993949",
+      "gt_label": "bonafide",
+      "prob_real": 0.12141922861337662,
+      "prob_fake": 0.8785807490348816,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2017251",
+      "gt_label": "bonafide",
+      "prob_real": 0.11816632747650146,
+      "prob_fake": 0.8818337321281433,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2022297",
+      "gt_label": "bonafide",
+      "prob_real": 0.08200941234827042,
+      "prob_fake": 0.9179905652999878,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2124484",
+      "gt_label": "bonafide",
+      "prob_real": 0.097662054002285,
+      "prob_fake": 0.902337908744812,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2133778",
+      "gt_label": "bonafide",
+      "prob_real": 0.09684788435697556,
+      "prob_fake": 0.9031521081924438,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2149963",
+      "gt_label": "bonafide",
+      "prob_real": 0.09180336445569992,
+      "prob_fake": 0.9081966280937195,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2165027",
+      "gt_label": "bonafide",
+      "prob_real": 0.14421656727790833,
+      "prob_fake": 0.8557834029197693,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2232106",
+      "gt_label": "bonafide",
+      "prob_real": 0.08190008252859116,
+      "prob_fake": 0.9180998802185059,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2237304",
+      "gt_label": "bonafide",
+      "prob_real": 0.11024384945631027,
+      "prob_fake": 0.8897562026977539,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2239661",
+      "gt_label": "bonafide",
+      "prob_real": 0.006079222075641155,
+      "prob_fake": 0.9939208030700684,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2248106",
+      "gt_label": "bonafide",
+      "prob_real": 0.17836086452007294,
+      "prob_fake": 0.8216391801834106,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2291264",
+      "gt_label": "bonafide",
+      "prob_real": 0.006406731903553009,
+      "prob_fake": 0.9935932755470276,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2307156",
+      "gt_label": "bonafide",
+      "prob_real": 0.11134684830904007,
+      "prob_fake": 0.8886530995368958,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2331981",
+      "gt_label": "bonafide",
+      "prob_real": 0.008328958414494991,
+      "prob_fake": 0.991671085357666,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2333541",
+      "gt_label": "bonafide",
+      "prob_real": 0.006229165475815535,
+      "prob_fake": 0.9937707781791687,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2334188",
+      "gt_label": "bonafide",
+      "prob_real": 0.00604433286935091,
+      "prob_fake": 0.993955671787262,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2340825",
+      "gt_label": "bonafide",
+      "prob_real": 0.005134376231580973,
+      "prob_fake": 0.9948655962944031,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2363183",
+      "gt_label": "bonafide",
+      "prob_real": 0.006129107438027859,
+      "prob_fake": 0.9938708543777466,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2367899",
+      "gt_label": "bonafide",
+      "prob_real": 0.00662639457732439,
+      "prob_fake": 0.9933736324310303,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2369833",
+      "gt_label": "bonafide",
+      "prob_real": 0.01973017305135727,
+      "prob_fake": 0.9802697896957397,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2389494",
+      "gt_label": "bonafide",
+      "prob_real": 0.007343017961829901,
+      "prob_fake": 0.9926570057868958,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2390711",
+      "gt_label": "bonafide",
+      "prob_real": 0.009855740703642368,
+      "prob_fake": 0.9901442527770996,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2416538",
+      "gt_label": "bonafide",
+      "prob_real": 0.008204322308301926,
+      "prob_fake": 0.9917957186698914,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2417895",
+      "gt_label": "bonafide",
+      "prob_real": 0.006909885443747044,
+      "prob_fake": 0.9930900931358337,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2427933",
+      "gt_label": "bonafide",
+      "prob_real": 0.004834403749555349,
+      "prob_fake": 0.9951655864715576,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2449712",
+      "gt_label": "spoof",
+      "prob_real": 0.012651701457798481,
+      "prob_fake": 0.9873483180999756,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2453330",
+      "gt_label": "spoof",
+      "prob_real": 0.0055581023916602135,
+      "prob_fake": 0.9944419264793396,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2455736",
+      "gt_label": "spoof",
+      "prob_real": 0.20366792380809784,
+      "prob_fake": 0.796332061290741,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2472289",
+      "gt_label": "spoof",
+      "prob_real": 0.01183034386485815,
+      "prob_fake": 0.9881696701049805,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2496514",
+      "gt_label": "spoof",
+      "prob_real": 0.006835132371634245,
+      "prob_fake": 0.9931648373603821,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2552799",
+      "gt_label": "spoof",
+      "prob_real": 0.1431961953639984,
+      "prob_fake": 0.856803834438324,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2571019",
+      "gt_label": "spoof",
+      "prob_real": 0.005771043244749308,
+      "prob_fake": 0.9942289590835571,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2654479",
+      "gt_label": "spoof",
+      "prob_real": 0.0071876877918839455,
+      "prob_fake": 0.9928123354911804,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2670696",
+      "gt_label": "spoof",
+      "prob_real": 0.006292295642197132,
+      "prob_fake": 0.9937076568603516,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2674978",
+      "gt_label": "spoof",
+      "prob_real": 0.13782387971878052,
+      "prob_fake": 0.8621761202812195,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2689476",
+      "gt_label": "spoof",
+      "prob_real": 0.005414228420704603,
+      "prob_fake": 0.9945857524871826,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2741757",
+      "gt_label": "spoof",
+      "prob_real": 0.006092992145568132,
+      "prob_fake": 0.9939070343971252,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2754300",
+      "gt_label": "spoof",
+      "prob_real": 0.006348335184156895,
+      "prob_fake": 0.9936516284942627,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2760189",
+      "gt_label": "spoof",
+      "prob_real": 0.0046651666052639484,
+      "prob_fake": 0.995334804058075,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2803648",
+      "gt_label": "spoof",
+      "prob_real": 0.006303608883172274,
+      "prob_fake": 0.993696391582489,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2813590",
+      "gt_label": "spoof",
+      "prob_real": 0.005338513758033514,
+      "prob_fake": 0.9946615099906921,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2844885",
+      "gt_label": "spoof",
+      "prob_real": 0.12131166458129883,
+      "prob_fake": 0.8786883354187012,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2850598",
+      "gt_label": "spoof",
+      "prob_real": 0.10884076356887817,
+      "prob_fake": 0.8911592960357666,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2862236",
+      "gt_label": "spoof",
+      "prob_real": 0.00748933432623744,
+      "prob_fake": 0.9925106763839722,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2920009",
+      "gt_label": "spoof",
+      "prob_real": 0.011566100642085075,
+      "prob_fake": 0.9884338974952698,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2938440",
+      "gt_label": "spoof",
+      "prob_real": 0.02202049270272255,
+      "prob_fake": 0.9779794812202454,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2942769",
+      "gt_label": "spoof",
+      "prob_real": 0.005987837910652161,
+      "prob_fake": 0.994012176990509,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2944634",
+      "gt_label": "spoof",
+      "prob_real": 0.0891997218132019,
+      "prob_fake": 0.9108002781867981,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2945850",
+      "gt_label": "spoof",
+      "prob_real": 0.010587258264422417,
+      "prob_fake": 0.9894127249717712,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2954917",
+      "gt_label": "spoof",
+      "prob_real": 0.15283165872097015,
+      "prob_fake": 0.8471683263778687,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2973553",
+      "gt_label": "spoof",
+      "prob_real": 0.005286496598273516,
+      "prob_fake": 0.9947134852409363,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2975559",
+      "gt_label": "spoof",
+      "prob_real": 0.00479360856115818,
+      "prob_fake": 0.9952064156532288,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2977712",
+      "gt_label": "spoof",
+      "prob_real": 0.008500678464770317,
+      "prob_fake": 0.9914993643760681,
+      "error": null
+    },
+    {
+      "filename": "LA_D_2996902",
+      "gt_label": "spoof",
+      "prob_real": 0.005817236844450235,
+      "prob_fake": 0.9941827654838562,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3000565",
+      "gt_label": "spoof",
+      "prob_real": 0.10402311384677887,
+      "prob_fake": 0.8959769010543823,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3019059",
+      "gt_label": "spoof",
+      "prob_real": 0.005776873789727688,
+      "prob_fake": 0.9942230582237244,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3024431",
+      "gt_label": "spoof",
+      "prob_real": 0.008507553488016129,
+      "prob_fake": 0.9914924502372742,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3027894",
+      "gt_label": "spoof",
+      "prob_real": 0.0069207013584673405,
+      "prob_fake": 0.9930792450904846,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3040671",
+      "gt_label": "spoof",
+      "prob_real": 0.008224938064813614,
+      "prob_fake": 0.9917750358581543,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3074651",
+      "gt_label": "spoof",
+      "prob_real": 0.12895192205905914,
+      "prob_fake": 0.871048092842102,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3075867",
+      "gt_label": "spoof",
+      "prob_real": 0.16916099190711975,
+      "prob_fake": 0.8308390378952026,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3079188",
+      "gt_label": "spoof",
+      "prob_real": 0.005699585657566786,
+      "prob_fake": 0.994300365447998,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3082795",
+      "gt_label": "spoof",
+      "prob_real": 0.006321698892861605,
+      "prob_fake": 0.9936782717704773,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3086617",
+      "gt_label": "spoof",
+      "prob_real": 0.008445539511740208,
+      "prob_fake": 0.9915544390678406,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3096505",
+      "gt_label": "spoof",
+      "prob_real": 0.005956464912742376,
+      "prob_fake": 0.9940435290336609,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3137946",
+      "gt_label": "spoof",
+      "prob_real": 0.006126224063336849,
+      "prob_fake": 0.9938738346099854,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3141328",
+      "gt_label": "spoof",
+      "prob_real": 0.007652305997908115,
+      "prob_fake": 0.9923477172851562,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3158870",
+      "gt_label": "spoof",
+      "prob_real": 0.045194126665592194,
+      "prob_fake": 0.954805850982666,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3179640",
+      "gt_label": "spoof",
+      "prob_real": 0.0067748986184597015,
+      "prob_fake": 0.9932250380516052,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3189395",
+      "gt_label": "spoof",
+      "prob_real": 0.007613262161612511,
+      "prob_fake": 0.9923866987228394,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3196844",
+      "gt_label": "spoof",
+      "prob_real": 0.005329568404704332,
+      "prob_fake": 0.9946704506874084,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3264952",
+      "gt_label": "spoof",
+      "prob_real": 0.2707557678222656,
+      "prob_fake": 0.7292442321777344,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3343965",
+      "gt_label": "spoof",
+      "prob_real": 0.14372362196445465,
+      "prob_fake": 0.8562764525413513,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3459809",
+      "gt_label": "spoof",
+      "prob_real": 0.13487526774406433,
+      "prob_fake": 0.8651247620582581,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3507167",
+      "gt_label": "spoof",
+      "prob_real": 0.15414758026599884,
+      "prob_fake": 0.8458524346351624,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3631905",
+      "gt_label": "spoof",
+      "prob_real": 0.21555793285369873,
+      "prob_fake": 0.7844420671463013,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3717777",
+      "gt_label": "spoof",
+      "prob_real": 0.09364703297615051,
+      "prob_fake": 0.9063529372215271,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3742070",
+      "gt_label": "spoof",
+      "prob_real": 0.12420147657394409,
+      "prob_fake": 0.8757985830307007,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3836344",
+      "gt_label": "spoof",
+      "prob_real": 0.11750519275665283,
+      "prob_fake": 0.8824948072433472,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3876129",
+      "gt_label": "spoof",
+      "prob_real": 0.10580236464738846,
+      "prob_fake": 0.8941975831985474,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3908841",
+      "gt_label": "spoof",
+      "prob_real": 0.14991630613803864,
+      "prob_fake": 0.8500837087631226,
+      "error": null
+    },
+    {
+      "filename": "LA_D_3916177",
+      "gt_label": "spoof",
+      "prob_real": 0.12635178864002228,
+      "prob_fake": 0.8736482262611389,
+      "error": null
+    },
+    {
+      "filename": "LA_D_4005854",
+      "gt_label": "spoof",
+      "prob_real": 0.13369227945804596,
+      "prob_fake": 0.86630779504776,
+      "error": null
+    },
+    {
+      "filename": "LA_D_4063159",
+      "gt_label": "spoof",
+      "prob_real": 0.1121528148651123,
+      "prob_fake": 0.8878472447395325,
+      "error": null
+    },
+    {
+      "filename": "LA_D_4129574",
+      "gt_label": "spoof",
+      "prob_real": 0.09859226644039154,
+      "prob_fake": 0.9014076590538025,
+      "error": null
+    },
+    {
+      "filename": "LA_D_4328579",
+      "gt_label": "spoof",
+      "prob_real": 0.13108214735984802,
+      "prob_fake": 0.8689178824424744,
+      "error": null
+    },
+    {
+      "filename": "LA_D_4524484",
+      "gt_label": "spoof",
+      "prob_real": 0.10737114399671555,
+      "prob_fake": 0.8926288485527039,
+      "error": null
+    },
+    {
+      "filename": "LA_D_4789150",
+      "gt_label": "spoof",
+      "prob_real": 0.12774714827537537,
+      "prob_fake": 0.8722528219223022,
+      "error": null
+    },
+    {
+      "filename": "LA_D_4833247",
+      "gt_label": "spoof",
+      "prob_real": 0.3267451822757721,
+      "prob_fake": 0.6732548475265503,
+      "error": null
+    },
+    {
+      "filename": "LA_D_4877516",
+      "gt_label": "spoof",
+      "prob_real": 0.14304320514202118,
+      "prob_fake": 0.8569568395614624,
+      "error": null
+    },
+    {
+      "filename": "LA_D_4900801",
+      "gt_label": "spoof",
+      "prob_real": 0.13314229249954224,
+      "prob_fake": 0.8668577075004578,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5072627",
+      "gt_label": "spoof",
+      "prob_real": 0.10326001048088074,
+      "prob_fake": 0.8967399597167969,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5086183",
+      "gt_label": "spoof",
+      "prob_real": 0.12771058082580566,
+      "prob_fake": 0.8722894787788391,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5143230",
+      "gt_label": "spoof",
+      "prob_real": 0.1400880217552185,
+      "prob_fake": 0.8599119782447815,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5178609",
+      "gt_label": "spoof",
+      "prob_real": 0.10808922350406647,
+      "prob_fake": 0.89191073179245,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5182745",
+      "gt_label": "spoof",
+      "prob_real": 0.12809401750564575,
+      "prob_fake": 0.871906042098999,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5240410",
+      "gt_label": "spoof",
+      "prob_real": 0.13128583133220673,
+      "prob_fake": 0.8687141537666321,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5334203",
+      "gt_label": "spoof",
+      "prob_real": 0.10594368726015091,
+      "prob_fake": 0.8940563797950745,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5451679",
+      "gt_label": "spoof",
+      "prob_real": 0.13898995518684387,
+      "prob_fake": 0.8610100150108337,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5508177",
+      "gt_label": "spoof",
+      "prob_real": 0.11804334819316864,
+      "prob_fake": 0.8819566369056702,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5604089",
+      "gt_label": "spoof",
+      "prob_real": 0.11802396178245544,
+      "prob_fake": 0.8819760084152222,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5700038",
+      "gt_label": "spoof",
+      "prob_real": 0.10707901418209076,
+      "prob_fake": 0.8929210305213928,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5833858",
+      "gt_label": "spoof",
+      "prob_real": 0.0922713577747345,
+      "prob_fake": 0.9077286124229431,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5929116",
+      "gt_label": "spoof",
+      "prob_real": 0.11240794509649277,
+      "prob_fake": 0.887592077255249,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5930714",
+      "gt_label": "spoof",
+      "prob_real": 0.13803048431873322,
+      "prob_fake": 0.861969530582428,
+      "error": null
+    },
+    {
+      "filename": "LA_D_5985188",
+      "gt_label": "spoof",
+      "prob_real": 0.1049448549747467,
+      "prob_fake": 0.8950551152229309,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6055606",
+      "gt_label": "spoof",
+      "prob_real": 0.13813631236553192,
+      "prob_fake": 0.8618636727333069,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6066874",
+      "gt_label": "spoof",
+      "prob_real": 0.12186996638774872,
+      "prob_fake": 0.8781300783157349,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6067380",
+      "gt_label": "spoof",
+      "prob_real": 0.10579287260770798,
+      "prob_fake": 0.8942071199417114,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6137766",
+      "gt_label": "spoof",
+      "prob_real": 0.12035859376192093,
+      "prob_fake": 0.8796414136886597,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6150120",
+      "gt_label": "spoof",
+      "prob_real": 0.15831522643566132,
+      "prob_fake": 0.8416847586631775,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6197289",
+      "gt_label": "spoof",
+      "prob_real": 0.1499413251876831,
+      "prob_fake": 0.8500587344169617,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6198995",
+      "gt_label": "spoof",
+      "prob_real": 0.11568935960531235,
+      "prob_fake": 0.8843106627464294,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6231410",
+      "gt_label": "spoof",
+      "prob_real": 0.14868442714214325,
+      "prob_fake": 0.8513155579566956,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6258471",
+      "gt_label": "spoof",
+      "prob_real": 0.1877976804971695,
+      "prob_fake": 0.8122023940086365,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6265671",
+      "gt_label": "spoof",
+      "prob_real": 0.16964943706989288,
+      "prob_fake": 0.8303505182266235,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6288751",
+      "gt_label": "spoof",
+      "prob_real": 0.1252235621213913,
+      "prob_fake": 0.8747764229774475,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6289915",
+      "gt_label": "spoof",
+      "prob_real": 0.1458258479833603,
+      "prob_fake": 0.8541740775108337,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6303389",
+      "gt_label": "spoof",
+      "prob_real": 0.18048937618732452,
+      "prob_fake": 0.8195106983184814,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6353335",
+      "gt_label": "spoof",
+      "prob_real": 0.20083168148994446,
+      "prob_fake": 0.7991683483123779,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6386877",
+      "gt_label": "spoof",
+      "prob_real": 0.1257292479276657,
+      "prob_fake": 0.8742707967758179,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6453794",
+      "gt_label": "spoof",
+      "prob_real": 0.1726764738559723,
+      "prob_fake": 0.8273234963417053,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6455651",
+      "gt_label": "spoof",
+      "prob_real": 0.14681614935398102,
+      "prob_fake": 0.8531838655471802,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6458898",
+      "gt_label": "spoof",
+      "prob_real": 0.13797330856323242,
+      "prob_fake": 0.8620267510414124,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6459646",
+      "gt_label": "spoof",
+      "prob_real": 0.16074497997760773,
+      "prob_fake": 0.8392549753189087,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6478834",
+      "gt_label": "spoof",
+      "prob_real": 0.12022962421178818,
+      "prob_fake": 0.8797703981399536,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6648802",
+      "gt_label": "spoof",
+      "prob_real": 0.6324108242988586,
+      "prob_fake": 0.36758917570114136,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6663247",
+      "gt_label": "spoof",
+      "prob_real": 0.6644250154495239,
+      "prob_fake": 0.33557501435279846,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6679303",
+      "gt_label": "spoof",
+      "prob_real": 0.9100936651229858,
+      "prob_fake": 0.08990640938282013,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6700006",
+      "gt_label": "spoof",
+      "prob_real": 0.13508157432079315,
+      "prob_fake": 0.8649183511734009,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6724166",
+      "gt_label": "spoof",
+      "prob_real": 0.8993598222732544,
+      "prob_fake": 0.1006401777267456,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6754294",
+      "gt_label": "spoof",
+      "prob_real": 0.1293584555387497,
+      "prob_fake": 0.8706415891647339,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6818564",
+      "gt_label": "spoof",
+      "prob_real": 0.1705232411623001,
+      "prob_fake": 0.8294767737388611,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6853824",
+      "gt_label": "spoof",
+      "prob_real": 0.7948401570320129,
+      "prob_fake": 0.20515981316566467,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6912038",
+      "gt_label": "spoof",
+      "prob_real": 0.112784244120121,
+      "prob_fake": 0.8872157335281372,
+      "error": null
+    },
+    {
+      "filename": "LA_D_6976006",
+      "gt_label": "spoof",
+      "prob_real": 0.8280467391014099,
+      "prob_fake": 0.1719532310962677,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7030288",
+      "gt_label": "spoof",
+      "prob_real": 0.8524665832519531,
+      "prob_fake": 0.1475333869457245,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7051994",
+      "gt_label": "spoof",
+      "prob_real": 0.8746780157089233,
+      "prob_fake": 0.12532204389572144,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7054977",
+      "gt_label": "spoof",
+      "prob_real": 0.7716713547706604,
+      "prob_fake": 0.2283286601305008,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7130250",
+      "gt_label": "spoof",
+      "prob_real": 0.6825051307678223,
+      "prob_fake": 0.31749483942985535,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7140023",
+      "gt_label": "spoof",
+      "prob_real": 0.9225809574127197,
+      "prob_fake": 0.0774189829826355,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7148850",
+      "gt_label": "spoof",
+      "prob_real": 0.905179500579834,
+      "prob_fake": 0.09482049942016602,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7153745",
+      "gt_label": "spoof",
+      "prob_real": 0.134116530418396,
+      "prob_fake": 0.865883469581604,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7172970",
+      "gt_label": "spoof",
+      "prob_real": 0.14382986724376678,
+      "prob_fake": 0.8561701774597168,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7179829",
+      "gt_label": "spoof",
+      "prob_real": 0.18297579884529114,
+      "prob_fake": 0.8170241713523865,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7194660",
+      "gt_label": "spoof",
+      "prob_real": 0.555724561214447,
+      "prob_fake": 0.4442754089832306,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7269236",
+      "gt_label": "spoof",
+      "prob_real": 0.8644493818283081,
+      "prob_fake": 0.1355506181716919,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7341689",
+      "gt_label": "spoof",
+      "prob_real": 0.9683523774147034,
+      "prob_fake": 0.031647659838199615,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7360454",
+      "gt_label": "spoof",
+      "prob_real": 0.865344226360321,
+      "prob_fake": 0.13465581834316254,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7376093",
+      "gt_label": "spoof",
+      "prob_real": 0.10746296495199203,
+      "prob_fake": 0.892536997795105,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7399617",
+      "gt_label": "spoof",
+      "prob_real": 0.8955591917037964,
+      "prob_fake": 0.10444086045026779,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7450790",
+      "gt_label": "spoof",
+      "prob_real": 0.7059943079948425,
+      "prob_fake": 0.29400572180747986,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7473394",
+      "gt_label": "spoof",
+      "prob_real": 0.8340086340904236,
+      "prob_fake": 0.16599135100841522,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7501292",
+      "gt_label": "spoof",
+      "prob_real": 0.10271761566400528,
+      "prob_fake": 0.8972824215888977,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7512726",
+      "gt_label": "spoof",
+      "prob_real": 0.11738678812980652,
+      "prob_fake": 0.8826131820678711,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7521836",
+      "gt_label": "spoof",
+      "prob_real": 0.7794719934463501,
+      "prob_fake": 0.2205280065536499,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7534463",
+      "gt_label": "spoof",
+      "prob_real": 0.10908214002847672,
+      "prob_fake": 0.8909178376197815,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7543100",
+      "gt_label": "spoof",
+      "prob_real": 0.8130312561988831,
+      "prob_fake": 0.18696869909763336,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7544405",
+      "gt_label": "spoof",
+      "prob_real": 0.1528889238834381,
+      "prob_fake": 0.8471110463142395,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7565232",
+      "gt_label": "spoof",
+      "prob_real": 0.11692684888839722,
+      "prob_fake": 0.8830732107162476,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7573423",
+      "gt_label": "spoof",
+      "prob_real": 0.11407313495874405,
+      "prob_fake": 0.8859269022941589,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7612426",
+      "gt_label": "spoof",
+      "prob_real": 0.14265355467796326,
+      "prob_fake": 0.8573464751243591,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7622198",
+      "gt_label": "spoof",
+      "prob_real": 0.12457973510026932,
+      "prob_fake": 0.8754202723503113,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7638211",
+      "gt_label": "spoof",
+      "prob_real": 0.8493813276290894,
+      "prob_fake": 0.15061868727207184,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7679130",
+      "gt_label": "spoof",
+      "prob_real": 0.9180374145507812,
+      "prob_fake": 0.08196264505386353,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7691845",
+      "gt_label": "spoof",
+      "prob_real": 0.1466616690158844,
+      "prob_fake": 0.853338360786438,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7712846",
+      "gt_label": "spoof",
+      "prob_real": 0.12309986352920532,
+      "prob_fake": 0.8769001364707947,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7755990",
+      "gt_label": "spoof",
+      "prob_real": 0.148949533700943,
+      "prob_fake": 0.8510504961013794,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7758267",
+      "gt_label": "spoof",
+      "prob_real": 0.16522693634033203,
+      "prob_fake": 0.834773063659668,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7758918",
+      "gt_label": "spoof",
+      "prob_real": 0.8457854390144348,
+      "prob_fake": 0.154214546084404,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7787517",
+      "gt_label": "spoof",
+      "prob_real": 0.18310751020908356,
+      "prob_fake": 0.8168925046920776,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7793148",
+      "gt_label": "spoof",
+      "prob_real": 0.5296084880828857,
+      "prob_fake": 0.47039154171943665,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7798955",
+      "gt_label": "spoof",
+      "prob_real": 0.11313588917255402,
+      "prob_fake": 0.8868640661239624,
+      "error": null
+    },
+    {
+      "filename": "LA_D_7870292",
+      "gt_label": "spoof",
+      "prob_real": 0.1495959311723709,
+      "prob_fake": 0.8504040241241455,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8017626",
+      "gt_label": "spoof",
+      "prob_real": 0.787109911441803,
+      "prob_fake": 0.2128901332616806,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8034204",
+      "gt_label": "spoof",
+      "prob_real": 0.14110609889030457,
+      "prob_fake": 0.858893871307373,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8184939",
+      "gt_label": "spoof",
+      "prob_real": 0.8350276350975037,
+      "prob_fake": 0.16497239470481873,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8199784",
+      "gt_label": "spoof",
+      "prob_real": 0.11589054018259048,
+      "prob_fake": 0.8841094374656677,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8241585",
+      "gt_label": "spoof",
+      "prob_real": 0.8701416850090027,
+      "prob_fake": 0.1298583447933197,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8272605",
+      "gt_label": "spoof",
+      "prob_real": 0.09777931869029999,
+      "prob_fake": 0.9022206664085388,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8305753",
+      "gt_label": "spoof",
+      "prob_real": 0.09958778321743011,
+      "prob_fake": 0.9004122614860535,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8428131",
+      "gt_label": "spoof",
+      "prob_real": 0.8945044279098511,
+      "prob_fake": 0.10549559444189072,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8430669",
+      "gt_label": "spoof",
+      "prob_real": 0.1524224579334259,
+      "prob_fake": 0.8475775122642517,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8432583",
+      "gt_label": "spoof",
+      "prob_real": 0.6729313135147095,
+      "prob_fake": 0.3270687460899353,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8693177",
+      "gt_label": "spoof",
+      "prob_real": 0.12851442396640778,
+      "prob_fake": 0.8714855313301086,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8699257",
+      "gt_label": "spoof",
+      "prob_real": 0.12112793326377869,
+      "prob_fake": 0.8788720369338989,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8713325",
+      "gt_label": "spoof",
+      "prob_real": 0.26877790689468384,
+      "prob_fake": 0.7312220335006714,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8716023",
+      "gt_label": "spoof",
+      "prob_real": 0.10733029246330261,
+      "prob_fake": 0.892669677734375,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8736165",
+      "gt_label": "spoof",
+      "prob_real": 0.890425980091095,
+      "prob_fake": 0.10957396775484085,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8750703",
+      "gt_label": "spoof",
+      "prob_real": 0.8225581645965576,
+      "prob_fake": 0.17744183540344238,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8764814",
+      "gt_label": "spoof",
+      "prob_real": 0.9266406297683716,
+      "prob_fake": 0.07335937023162842,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8812163",
+      "gt_label": "spoof",
+      "prob_real": 0.7745991349220276,
+      "prob_fake": 0.2254009246826172,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8813855",
+      "gt_label": "spoof",
+      "prob_real": 0.8916022777557373,
+      "prob_fake": 0.10839767754077911,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8817568",
+      "gt_label": "spoof",
+      "prob_real": 0.7424017786979675,
+      "prob_fake": 0.2575981914997101,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8869015",
+      "gt_label": "spoof",
+      "prob_real": 0.68250972032547,
+      "prob_fake": 0.31749024987220764,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8869959",
+      "gt_label": "spoof",
+      "prob_real": 0.6216709017753601,
+      "prob_fake": 0.37832918763160706,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8923486",
+      "gt_label": "spoof",
+      "prob_real": 0.7518240809440613,
+      "prob_fake": 0.24817587435245514,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8966044",
+      "gt_label": "spoof",
+      "prob_real": 0.7274588346481323,
+      "prob_fake": 0.2725411355495453,
+      "error": null
+    },
+    {
+      "filename": "LA_D_8988565",
+      "gt_label": "spoof",
+      "prob_real": 0.12451360374689102,
+      "prob_fake": 0.875486433506012,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9015485",
+      "gt_label": "spoof",
+      "prob_real": 0.9232211709022522,
+      "prob_fake": 0.076778843998909,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9042964",
+      "gt_label": "spoof",
+      "prob_real": 0.3726199269294739,
+      "prob_fake": 0.6273801326751709,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9113203",
+      "gt_label": "spoof",
+      "prob_real": 0.8662844896316528,
+      "prob_fake": 0.1337154656648636,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9134844",
+      "gt_label": "spoof",
+      "prob_real": 0.8430301547050476,
+      "prob_fake": 0.15696981549263,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9239572",
+      "gt_label": "spoof",
+      "prob_real": 0.14669261872768402,
+      "prob_fake": 0.8533073663711548,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9288302",
+      "gt_label": "spoof",
+      "prob_real": 0.1639140546321869,
+      "prob_fake": 0.8360859751701355,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9303165",
+      "gt_label": "spoof",
+      "prob_real": 0.1580827236175537,
+      "prob_fake": 0.8419172763824463,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9375342",
+      "gt_label": "spoof",
+      "prob_real": 0.8200705051422119,
+      "prob_fake": 0.1799294650554657,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9462553",
+      "gt_label": "spoof",
+      "prob_real": 0.11451031267642975,
+      "prob_fake": 0.8854897022247314,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9498667",
+      "gt_label": "spoof",
+      "prob_real": 0.7233501672744751,
+      "prob_fake": 0.2766497731208801,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9509324",
+      "gt_label": "spoof",
+      "prob_real": 0.7751973271369934,
+      "prob_fake": 0.22480268776416779,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9560424",
+      "gt_label": "spoof",
+      "prob_real": 0.13987493515014648,
+      "prob_fake": 0.8601250648498535,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9584404",
+      "gt_label": "spoof",
+      "prob_real": 0.1145690381526947,
+      "prob_fake": 0.8854309320449829,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9602677",
+      "gt_label": "spoof",
+      "prob_real": 0.7409153580665588,
+      "prob_fake": 0.2590846121311188,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9620410",
+      "gt_label": "spoof",
+      "prob_real": 0.11414144188165665,
+      "prob_fake": 0.8858585953712463,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9631448",
+      "gt_label": "spoof",
+      "prob_real": 0.1279589682817459,
+      "prob_fake": 0.8720409870147705,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9697774",
+      "gt_label": "spoof",
+      "prob_real": 0.7315977811813354,
+      "prob_fake": 0.2684021592140198,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9699048",
+      "gt_label": "spoof",
+      "prob_real": 0.47754448652267456,
+      "prob_fake": 0.5224555134773254,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9726894",
+      "gt_label": "spoof",
+      "prob_real": 0.1430254429578781,
+      "prob_fake": 0.8569746017456055,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9732143",
+      "gt_label": "spoof",
+      "prob_real": 0.8954865336418152,
+      "prob_fake": 0.10451341420412064,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9867970",
+      "gt_label": "spoof",
+      "prob_real": 0.9084624648094177,
+      "prob_fake": 0.09153757244348526,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9869348",
+      "gt_label": "spoof",
+      "prob_real": 0.8320264220237732,
+      "prob_fake": 0.16797351837158203,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9884114",
+      "gt_label": "spoof",
+      "prob_real": 0.9490565061569214,
+      "prob_fake": 0.05094348266720772,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9954386",
+      "gt_label": "spoof",
+      "prob_real": 0.18647344410419464,
+      "prob_fake": 0.8135265111923218,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9977795",
+      "gt_label": "spoof",
+      "prob_real": 0.7825303673744202,
+      "prob_fake": 0.21746964752674103,
+      "error": null
+    },
+    {
+      "filename": "LA_D_9993956",
+      "gt_label": "spoof",
+      "prob_real": 0.08970916271209717,
+      "prob_fake": 0.9102908968925476,
+      "error": null
+    }
+  ]
+}

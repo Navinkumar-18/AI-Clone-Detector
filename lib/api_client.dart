@@ -9,39 +9,109 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart' as http_io;
 import 'config.dart';
 import 'models/live_analysis_result.dart';
 
 // ---------------------------------------------------------------------------
-// Result model — existing /predict contract
+// Result model — /predict contract (updated for canonical schema)
 // ---------------------------------------------------------------------------
 
 /// Typed result returned by /predict.
-/// Mirrors the agreed API contract exactly — do not change without coordinating
-/// with the backend team.
+/// Uses the canonical DetectionResponse schema from the backend.
 class PredictResult {
-  final String label;       // "bonafide" | "spoof"
-  final double confidence;  // 0.0 – 1.0
-  final String riskLevel;   // "low" | "medium" | "high"
+  final String decision;      // "low_risk" | "verification_required" | "action_held" | "insufficient_evidence"
+  final String action;        // "allow_with_caution" | "verify" | "hold" | "unavailable"
+  final String label;         // "bonafide" | "spoof" | "unknown"
+  final double confidence;    // 0.0 – 1.0
+  final double spoofScore;    // 0.0 – 1.0
+  final String riskLevel;     // "low" | "medium" | "high" | "unknown"
+  final double riskPercentage;
+  final bool speechDetected;
+  final List<String> reasonCodes;
+  final String modelVersion;
 
   const PredictResult({
+    required this.decision,
+    required this.action,
     required this.label,
     required this.confidence,
+    required this.spoofScore,
     required this.riskLevel,
+    this.riskPercentage = 0.0,
+    this.speechDetected = true,
+    this.reasonCodes = const [],
+    this.modelVersion = '',
   });
 
   factory PredictResult.fromJson(Map<String, dynamic> json) {
+    List<String> reasons = [];
+    if (json['reason_codes'] is List) {
+      reasons = (json['reason_codes'] as List).map((e) => e.toString()).toList();
+    }
+
     return PredictResult(
-      label: json['label'] as String,
-      confidence: (json['confidence'] as num).toDouble(),
-      riskLevel: json['risk_level'] as String,
+      decision: json['decision'] as String? ?? _legacyDecision(json),
+      action: json['action'] as String? ?? 'verify',
+      label: json['label'] as String? ?? 'unknown',
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
+      spoofScore: (json['spoof_score'] as num?)?.toDouble() ?? 0.0,
+      riskLevel: json['risk_level'] as String? ?? 'unknown',
+      riskPercentage: (json['risk_percentage'] as num?)?.toDouble() ?? 0.0,
+      speechDetected: json['speech_detected'] as bool? ?? true,
+      reasonCodes: reasons,
+      modelVersion: json['model_version'] as String? ?? '',
+    );
+  }
+
+  static String _legacyDecision(Map<String, dynamic> json) {
+    final risk = json['risk_level'] as String? ?? 'unknown';
+    return switch (risk) {
+      'low' => 'low_risk',
+      'medium' => 'verification_required',
+      'high' => 'verification_required',
+      _ => 'insufficient_evidence',
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Readiness info from GET /ready
+// ---------------------------------------------------------------------------
+
+class BackendReadiness {
+  final String status;       // "ready" | "not_ready"
+  final bool modelLoaded;
+  final String modelVersion;
+  final String thresholdVersion;
+  final String device;
+  final bool demoMode;
+
+  const BackendReadiness({
+    required this.status,
+    required this.modelLoaded,
+    this.modelVersion = '',
+    this.thresholdVersion = '',
+    this.device = '',
+    this.demoMode = false,
+  });
+
+  bool get isReady => status == 'ready' && modelLoaded;
+
+  factory BackendReadiness.fromJson(Map<String, dynamic> json) {
+    return BackendReadiness(
+      status: json['status'] as String? ?? 'not_ready',
+      modelLoaded: json['model_loaded'] as bool? ?? false,
+      modelVersion: json['model_version'] as String? ?? '',
+      thresholdVersion: json['threshold_version'] as String? ?? '',
+      device: json['device'] as String? ?? '',
+      demoMode: json['demo_mode'] as bool? ?? false,
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Typed exceptions — lets the UI show specific messages without leaking raw
-// exception text to the user.
+// Typed exceptions
 // ---------------------------------------------------------------------------
 
 /// Backend returned a non-200 status code.
@@ -68,6 +138,38 @@ class UnsupportedFileException implements Exception {
 class VoiceGuardApiClient {
   VoiceGuardApiClient._();
 
+  static http.Client? _customClient;
+
+  /// Scoped HTTP client.
+  /// When demo mode is explicitly active (kDemoMode && !kReleaseMode),
+  /// self-signed certificates are accepted strictly for the VoiceGuard backend host.
+  /// Secure mode (default) keeps standard certificate verification enabled.
+  /// No global certificate override affects unrelated HTTP traffic.
+  static http.Client get _client {
+    if (_customClient != null) return _customClient!;
+    if (kDemoMode && !kReleaseMode) {
+      final ioHttpClient = HttpClient()
+        ..badCertificateCallback = (cert, host, port) {
+          try {
+            final backendUri = Uri.parse(BackendConfig.baseUrl);
+            return host == backendUri.host;
+          } catch (_) {
+            return false;
+          }
+        };
+      _customClient = http_io.IOClient(ioHttpClient);
+    } else {
+      _customClient = http.Client();
+    }
+    return _customClient!;
+  }
+
+  /// Reset client cache (e.g., when base URL changes).
+  static void resetClient() {
+    _customClient?.close();
+    _customClient = null;
+  }
+
   /// Send [filePath] to POST /predict and return a typed [PredictResult].
   ///
   /// Throws [BackendUnreachableException], [UnsupportedFileException], or
@@ -79,28 +181,31 @@ class VoiceGuardApiClient {
     try {
       request.files.add(await http.MultipartFile.fromPath('file', filePath));
     } on FileSystemException {
-      // File vanished between selection and upload (e.g. temp file cleaned up).
       throw const UnsupportedFileException();
     }
 
     http.StreamedResponse streamedResponse;
     try {
-      streamedResponse = await request.send().timeout(kRequestTimeout);
+      streamedResponse = await _client.send(request).timeout(kRequestTimeout);
     } on SocketException catch (e) {
       throw BackendUnreachableException(e.message);
     } on TimeoutException {
       throw const BackendUnreachableException('Request timed out');
     } catch (e) {
-      // Catch-all for other network-layer issues (e.g. bad TLS, DNS failure).
       throw BackendUnreachableException(e.toString());
     }
 
     final response = await http.Response.fromStream(streamedResponse);
 
+    if (response.statusCode == 413) {
+      throw const UnsupportedFileException(); // Upload too large
+    }
     if (response.statusCode == 415 || response.statusCode == 422) {
       throw const UnsupportedFileException();
     }
-
+    if (response.statusCode == 429) {
+      throw const BackendErrorException(429); // Rate limited
+    }
     if (response.statusCode != 200) {
       throw BackendErrorException(response.statusCode);
     }
@@ -109,7 +214,6 @@ class VoiceGuardApiClient {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       return PredictResult.fromJson(json);
     } catch (_) {
-      // Malformed JSON from backend — treat as server error.
       throw const BackendErrorException(200);
     }
   }
@@ -120,11 +224,8 @@ class VoiceGuardApiClient {
 
   /// Send a raw WAV audio chunk to POST /live/analyze for real-time detection.
   ///
-  /// [wavBytes] must be a complete WAV file (with header) containing the
-  /// audio chunk to analyse. The backend runs the same Wav2Vec2 inference
-  /// pipeline as /predict.
-  ///
-  /// Throws [BackendUnreachableException] or [BackendErrorException] on failure.
+  /// Returns clip-level evidence. Call-level decisions are made by the
+  /// client-side risk aggregator.
   static Future<LiveAnalysisResult> analyzeLiveChunk(Uint8List wavBytes) async {
     final uri = Uri.parse('${BackendConfig.baseUrl}/live/analyze');
     final request = http.MultipartRequest('POST', uri);
@@ -137,7 +238,7 @@ class VoiceGuardApiClient {
 
     http.StreamedResponse streamedResponse;
     try {
-      streamedResponse = await request.send().timeout(kLiveRequestTimeout);
+      streamedResponse = await _client.send(request).timeout(kLiveRequestTimeout);
     } on SocketException catch (e) {
       throw BackendUnreachableException(e.message);
     } on TimeoutException {
@@ -161,26 +262,43 @@ class VoiceGuardApiClient {
   }
 
   // -------------------------------------------------------------------------
-  // Health Check
+  // Health & Readiness
   // -------------------------------------------------------------------------
 
-  /// Check backend connectivity and model status via GET /health.
-  ///
-  /// Returns `true` if the backend is reachable and the model is loaded.
-  /// Returns `false` on any failure (network, timeout, model not ready).
+  /// Check backend liveness via GET /health.
+  /// Returns `true` if the backend process is alive and model is loaded.
   static Future<bool> checkHealth() async {
     try {
       final uri = Uri.parse('${BackendConfig.baseUrl}/health');
-      final response = await http.get(uri).timeout(const Duration(seconds: 5));
+      final response = await _client.get(uri).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         return json['model_loaded'] == true;
       }
-      debugPrint('[VoiceGuard] Health check returned status ${response.statusCode}: ${response.body}');
+      debugPrint('[VoiceGuard] Health check returned status ${response.statusCode}');
       return false;
     } catch (e) {
-      debugPrint('[VoiceGuard] Health check error to ${BackendConfig.baseUrl}: $e');
+      debugPrint('[VoiceGuard] Health check error: $e');
       return false;
+    }
+  }
+
+  /// Check backend readiness via GET /ready.
+  /// Returns a [BackendReadiness] with model version, threshold version, etc.
+  /// The Flutter app must not display "Protection Active" if the backend
+  /// is alive but not ready.
+  static Future<BackendReadiness?> checkReadiness() async {
+    try {
+      final uri = Uri.parse('${BackendConfig.baseUrl}/ready');
+      final response = await _client.get(uri).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        return BackendReadiness.fromJson(json);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('[VoiceGuard] Readiness check error: $e');
+      return null;
     }
   }
 }

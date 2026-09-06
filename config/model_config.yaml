@@ -1,0 +1,96 @@
+# =============================================================================
+# VoiceGuard — Unified Model & System Configuration
+# =============================================================================
+# This is the SINGLE SOURCE OF TRUTH for all configuration values.
+# All backend code, evaluation scripts, tests, and documentation must
+# reference this file via voiceguard_config.py — no independent threshold
+# constants are permitted elsewhere.
+#
+# Version: threshold-v2
+# Last reviewed: 2026-09-06
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Model
+# ---------------------------------------------------------------------------
+model:
+  name: "garystafford/wav2vec2-deepfake-voice-detector"
+  revision: "main"
+  version: "voiceguard-v1"
+
+# ---------------------------------------------------------------------------
+# Audio
+# ---------------------------------------------------------------------------
+audio:
+  sample_rate: 16000
+  minimum_duration_seconds: 0.5
+  maximum_duration_seconds: 60.0
+  allowed_extensions:
+    - ".wav"
+    - ".flac"
+    - ".mp3"
+    - ".ogg"
+    - ".m4a"
+    - ".aac"
+    - ".webm"
+
+# ---------------------------------------------------------------------------
+# Thresholds
+# ---------------------------------------------------------------------------
+# RATIONALE:
+# The committed threshold report (threshold_report.txt) records a 100%
+# false-positive rate at the reviewed threshold (0.40). A complete threshold
+# sweep must be regenerated before making any claim about all thresholds.
+#
+# The spoof_threshold determines when prob_fake is classified as spoof.
+# The high_risk_threshold determines when a spoof classification is
+# considered high-confidence enough to warrant blocking actions.
+#
+# These thresholds are chosen conservatively for a DEMO prototype.
+# They must be validated against a proper evaluation before any
+# production claim.
+# ---------------------------------------------------------------------------
+thresholds:
+  version: "threshold-v2"
+  spoof_threshold: 0.30
+  high_risk_threshold: 0.85
+
+# ---------------------------------------------------------------------------
+# Risk aggregation (client-side / risk_aggregator.py)
+# ---------------------------------------------------------------------------
+risk_aggregation:
+  ema_alpha: 0.3
+  persistent_high_windows: 2
+  cooldown_windows: 3
+  medium_ema_threshold: 0.40
+  high_ema_threshold: 0.85
+
+# ---------------------------------------------------------------------------
+# Audio quality thresholds
+# ---------------------------------------------------------------------------
+audio_quality:
+  rms_silence_threshold: 0.003
+  minimum_voiced_ratio: 0.10
+  maximum_clipping_ratio: 0.05
+  poor_snr_threshold_db: 5.0
+
+# ---------------------------------------------------------------------------
+# Server / API
+# ---------------------------------------------------------------------------
+server:
+  maximum_upload_bytes: 10485760  # 10 MB
+  maximum_concurrency: 4
+  request_timeout_seconds: 30
+  live_request_timeout_seconds: 15
+  rate_limit_requests_per_minute: 60
+
+# ---------------------------------------------------------------------------
+# Security
+# ---------------------------------------------------------------------------
+security:
+  demo_mode: false
+  allowed_cors_origins:
+    - "http://localhost"
+    - "http://127.0.0.1"
+    - "https://localhost"
+    - "https://127.0.0.1"
