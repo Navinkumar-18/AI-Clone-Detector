@@ -76,10 +76,10 @@ The evaluation script uses the same model and preprocessing path configured for 
    - Both `backend.py` and the evaluation scripts load audio with `librosa.load(..., sr=16000, mono=True)` and invoke `feature_extractor(audio, sampling_rate=16000, padding=True)`.
    - The audio preprocessing path is identical; the high FPR is not attributable to a preprocessing discrepancy.
 
-4. **Distribution Inversion & Out-of-Domain Shift**:
+4. **Score Overlap & Domain Shift Assessment**:
    - Minimum bona-fide `prob_fake` is 0.8107; every bona-fide sample in the subset scored $\ge 0.8107$.
    - The bona-fide mean score (0.9080) is higher than the spoof mean score (0.7050).
-   - This score overlap is consistent with poor class separation under this evaluation, although the exact cause requires further investigation. Shifting thresholds cannot cleanly separate classes on this evaluation set without substantial retraining or calibration.
+   - The score distributions show severe overlap, with bona-fide scores higher on average than spoof scores. This indicates poor class separation and is consistent with substantial domain shift; calibration and model behavior require further investigation before any definitive root-cause attribution. Shifting thresholds alone cannot cleanly separate classes on this evaluation set without substantial retraining or calibration.
 
 ---
 

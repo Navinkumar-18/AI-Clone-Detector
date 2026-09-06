@@ -61,7 +61,7 @@ The detailed catalog of initial audit findings is recorded in `docs/IMPLEMENTATI
    - Exact upstream model revision: `c66306024a7ede0be291e9c4558b37634782dc4e` (upstream Hugging Face commit hash)
    - Note: `voiceguard-v1` is the application wrapper version, distinct from the upstream model commit hash.
 3. **Typed Configuration Loader**:
-   - Implemented `voiceguard_config.py` with immutable dataclasses, cached loading, and environment variable override support (`VOICEGUARD_DEMO_MODE`, `VOICEGUARD_SPOOF_THRESHOLD`).
+   - Implemented `voiceguard_config.py` with immutable dataclasses, cached loading, and environment variable override support (`VOICEGUARD_DEMO_MODE`, `VOICEGUARD_CONFIG_PATH`).
 4. **Canonical Response Schema**:
    - Standardized FastAPI Pydantic schema `DetectionResponse` in `backend.py` with fields: `decision`, `action`, `label`, `spoof_score`, `confidence`, `risk_level`, `risk_percentage`, `speech_detected`, `audio_quality`, `evidence`, `reason_codes`, `model_version`, `threshold_version`, and `request_id`.
    - Synchronized Dart client models (`LiveAnalysisResult` and `PredictResult`). Validated by `tests/test_api_schema.py`.
@@ -72,7 +72,7 @@ The detailed catalog of initial audit findings is recorded in `docs/IMPLEMENTATI
 
 1. **Signal Quality Engine (`audio_quality.py`)**:
    - Evaluates RMS energy, clipping ratio, voiced frame ratio (zero-crossing rate heuristic), and Signal-to-Noise Ratio (SNR) before inference.
-   - Gating criteria: minimum duration (0.5s), maximum duration (60.0s), RMS silence threshold (0.003), minimum voiced ratio (0.15), maximum clipping ratio (0.05), and poor SNR threshold (5.0 dB).
+   - Gating criteria: minimum duration (0.5s), maximum duration (60.0s), RMS silence threshold (0.003), minimum voiced ratio (0.10), maximum clipping ratio (0.05), and poor SNR threshold (5.0 dB).
 2. **Safety Invariants**:
    - Unusable audio immediately returns `decision="insufficient_evidence"`, `speech_detected=false`, and descriptive `reason_codes`.
    - Digital silence **never** returns `bonafide` or `allow_with_caution`.
@@ -176,7 +176,7 @@ The detailed catalog of initial audit findings is recorded in `docs/IMPLEMENTATI
      | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
      | **bonafide** | 50 | **0.8107** | 0.8699 | **0.8976** | 0.9877 | **0.9952** | **0.9080** |
      | **spoof** | 200 | **0.0316** | 0.3756 | **0.8620** | 0.8932 | **0.9953** | **0.7050** |
-   - **Scientific Assessment**: The score overlap is consistent with poor class separation under this evaluation, although the exact cause requires further investigation. Because every bona-fide clip in this subset received `prob_fake >= 0.8107` (with mean bona-fide score 0.9080 exceeding spoof mean 0.7050), bona-fide scores are not merely miscalibrated; the representations exhibit severe out-of-domain distribution shift.
+   - **Scientific Assessment**: The score distributions show severe overlap, with bona-fide scores higher on average than spoof scores. This indicates poor class separation and is consistent with substantial domain shift; calibration and model behavior require further investigation before any definitive root-cause attribution. Because every bona-fide clip in this subset received `prob_fake >= 0.8107` (with mean bona-fide score 0.9080 exceeding spoof mean 0.7050), shifting thresholds alone cannot cleanly separate classes on this evaluation set without substantial retraining or calibration.
 
 ---
 
