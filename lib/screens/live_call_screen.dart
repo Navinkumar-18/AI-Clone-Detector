@@ -108,6 +108,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   void initState() {
     super.initState();
     _checkHealth();
+    _startHealthChecks();
   }
 
   @override
@@ -187,14 +188,14 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
         encoder: AudioEncoder.pcm16bits,
         sampleRate: kLiveSampleRate,
         numChannels: 1,
-        noiseSuppress: true,
-        echoCancel: true,
+        noiseSuppress: false,
+        echoCancel: false,
         autoGain: true,
         audioInterruption: AudioInterruptionMode.none,
         androidConfig: AndroidRecordConfig(
-          audioSource: AndroidAudioSource.voiceCommunication,
-          audioManagerMode: AudioManagerMode.modeInCommunication,
-          speakerphone: true,
+          audioSource: AndroidAudioSource.mic,
+          audioManagerMode: AudioManagerMode.modeNormal,
+          speakerphone: false,
         ),
       );
       final stream = await _recorder.startStream(config);
@@ -1312,6 +1313,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                   _callState = _CallState.idle;
                   _errorMessage = '';
                 });
+                _checkHealth();
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Try Again'),

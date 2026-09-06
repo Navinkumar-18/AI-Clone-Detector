@@ -7,7 +7,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'config.dart';
 import 'models/live_analysis_result.dart';
@@ -176,8 +176,10 @@ class VoiceGuardApiClient {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         return json['model_loaded'] == true;
       }
+      debugPrint('[VoiceGuard] Health check returned status ${response.statusCode}: ${response.body}');
       return false;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[VoiceGuard] Health check error to ${BackendConfig.baseUrl}: $e');
       return false;
     }
   }
