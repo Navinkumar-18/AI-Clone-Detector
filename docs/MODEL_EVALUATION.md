@@ -93,4 +93,4 @@ If the dataset is absent, the script outputs:
 ```text
 NOT AVAILABLE — dataset was not present at the expected path.
 ```
-No metrics in this report or repository are fabricated or inflated.
+No fabricated metrics were identified in the reviewed evaluation artifacts. The reported metrics are traceable to the recorded evaluation results and available raw per-clip outputs.

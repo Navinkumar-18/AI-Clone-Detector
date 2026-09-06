@@ -14,6 +14,16 @@ The VoiceGuard hardening implementation and verification were executed on branch
 **Final Product Positioning**:  
 > "VoiceGuard is a privacy-aware prototype for detecting suspicious synthetic-speech characteristics and requesting independent verification before a sensitive action. It processes audio ephemerally, checks audio quality before inference, aggregates evidence across multiple windows, and never treats silence or unavailable analysis as proof that a caller is genuine. The current model has significant evaluation limitations, so the prototype deliberately uses risk-based step-up verification rather than claiming identity authentication or real transaction blocking."
 
+### Repository Identity and Clean-State Evidence
+
+| Claim | Evidence command | Actual result | Status |
+| :--- | :--- | :--- | :--- |
+| Branch identity | `git branch --show-current` | `voiceguard/sih2026-hardening` | Verified |
+| Final commit identity | `git rev-parse HEAD` | `756c5e54084469e91433fed6b568014afc2a8a2a` | Verified |
+| Clean working tree | `git status --short` | No output (clean working tree) | Verified |
+| No tracked private keys | `git ls-files \| grep -E '(^\|/)(cert\|key)\.(pem\|crt\|key)$' \|\| true` | No output (zero tracked keys) | Verified |
+| No machine-specific links | `grep -RInE 'file:///\|C:/Users\|c:/Users' docs/ README.md` | No actual machine-specific links found | Verified |
+
 ---
 
 ## 2. Baseline Audit
@@ -54,7 +64,7 @@ The detailed catalog of initial audit findings is recorded in `docs/IMPLEMENTATI
 
 1. **Single Source of Truth**:
    - Created `config/model_config.yaml` as the authoritative configuration for all thresholds, audio parameters, server limits, and risk aggregation settings.
-   - Threshold constants are centralized: `spoof_threshold: 0.30`, `high_risk_threshold: 0.85`. Independent threshold definitions in application code have been eliminated.
+   - Threshold constants are centralized: `spoof_threshold: 0.30`, `high_risk_threshold: 0.85`. A repository-wide review found no independent production threshold constants outside the centralized configuration chain; remaining threshold references are constructor defaults matching the config values (`risk_aggregator.py`), test fixtures (`tests/test_api_schema.py`, `tests/test_risk_aggregator.py`), documentation, evaluation artifacts (`evaluation/results.json`, `threshold_report.txt`), or historical scripts (`test_pretrained.py`, `test_multiple_clips.py`, `predict.py`, `evaluate_live_model.py`).
 2. **Model Identity Separation**:
    - Model source: `garystafford/wav2vec2-deepfake-voice-detector`
    - Application model version: `voiceguard-v1`
@@ -170,7 +180,7 @@ The detailed catalog of initial audit findings is recorded in `docs/IMPLEMENTATI
 4. **Diagnostic Findings on the 100% FPR**:
    - **Softmax Index Mapping**: Confirmed that `model.config.id2label` maps index 0 to `'real'` and index 1 to `'fake'`. In `backend.py`, `prob_real = probs[0].item()` and `prob_fake = probs[1].item()`. The index mapping matches correctly and is not inverted.
    - **Threshold 0.30 Origin**: Selected during initial sweeps of `evaluate_live_model.py` against `wav2vec2-deepfake-voice-detector` by maximizing the aggregate F1 score (76.54%) on the imbalanced 250-clip subset (200 spoof vs 50 bonafide). Because 155 true positives masked the 50 false positives in harmonic mean calculations, F1 was maximized at threshold 0.30 despite zero true negatives (TN=0). In contrast, the research WavLM pipeline (`predict.py`) used an offline MLP architecture with bonafide-probability output.
-   - **Preprocessing Parity**: The preprocessing in `backend.py` (`librosa.load(..., sr=16000, mono=True)` + `feature_extractor(..., sampling_rate=16000, padding=True)`) functionally matches `evaluate_live_model.py` and `evaluation/run_production_evaluation.py`. The high FPR is not caused by a preprocessing discrepancy.
+   - **Preprocessing Parity**: The reviewed preprocessing code paths are aligned across the backend and evaluation scripts (`librosa.load(..., sr=16000, mono=True)` + `feature_extractor(..., sampling_rate=16000, padding=True)`). A complete mismatch exclusion would additionally require reproducing the same dependency versions, model revision, audio decoding, and upload conversion path.
    - **Raw Score Distribution**:
      | Class | N | Min | p25 | Median | p75 | Max | Mean |
      | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -204,22 +214,24 @@ The detailed catalog of initial audit findings is recorded in `docs/IMPLEMENTATI
 ```bash
 pytest tests/ -v --cov=. --cov-report=term-missing
 ```
-- **Result**: 54 passed in 7.95s (100% pass rate).
+- **Result**: 54 passed in 10.54s (100% pass rate).
 - **Test Scope**: 54 automated tests passed in the available test suite. These tests validate implementation behavior, API contracts, audio-quality gates, backend behavior, security configuration, and temporal risk aggregation. They do not establish real-world voice-deepfake detection accuracy.
 - **Coverage Summary**:
   ```text
   Overall repository coverage: 39%
   ```
   Security-critical modules have targeted high coverage, while overall repository coverage is lower because the report includes broader application and supporting code.
-  - `audio_quality.py`: 95%
+  - `audio_quality.py`: 92%
+  - `voiceguard_config.py`: 95%
+  - `risk_aggregator.py`: 93%
   - `backend.py`: 79%
-  - `voiceguard_config.py`: 90%
-  - `risk_aggregator.py`: 82%
+- **Evaluation Artifacts**: The evaluation artifact (`evaluation/results.json`) contains recorded aggregate results and per-clip outputs used to calculate them. No fabricated metrics were identified in the reviewed evaluation artifacts. The reported metrics are traceable to the recorded evaluation results and available raw per-clip outputs.
 - **Static Analysis & Flutter Verification**:
   - `python -m compileall -q .`: Clean compilation across all files (exit code 0).
   - `python -c "from backend import app; print('OK')"`: Exits 0, prints `OK`.
-  - Flutter and Dart static analysis completed without reported diagnostics in the recorded environment (`dart analyze` and `flutter analyze` reported 0 issues).
-  - `flutter test`: 4 tests passed.
+  - `dart analyze`: No issues found.
+  - `flutter analyze`: NOT VERIFIED — not executed separately from `dart analyze` in this session.
+  - `flutter test`: 1 test passed (`widget_test.dart`).
 
 ---
 
@@ -273,14 +285,20 @@ flutter run -d windows --dart-define=DEMO_MODE=true
 
 ---
 
-## 13. Known Limitations
+## 13. Remaining Limitations
 
-1. **Acoustic Domain Shift**: The model exhibits score overlap on the ASVspoof 2019 LA evaluation subset, producing a 100% observed false positive rate at threshold 0.30.
-2. **Dataset & Language Coverage**: Evaluated on a 250-clip English subset. Regional Indian languages, regional accents, and noisy environments require domain fine-tuning and evaluation.
-3. **Telephony Codec Degradation**: Performance over 8 kHz AMR/GSM cellular compression has not been established.
-4. **In-Memory Rate Limiting**: The sliding-window rate limiter is single-process only; multi-instance deployment requires distributed state storage (e.g. Redis).
-5. **Simulated Financial Protection**: The prototype demonstrates step-up verification flows. No native banking APIs, payment gateways, or telephony networks are integrated.
-6. **Ephemeral Storage Boundaries**: Operating-system memory, swap files, crash dumps, client buffers, infrastructure logs, and backups are outside the guarantees of this prototype.
+- The evaluated production-model subset produced an observed false-positive rate of 100% at threshold 0.30.
+- This result is limited to the evaluated subset and must not be interpreted as full-dataset or real-world call performance.
+- The current score distributions show poor class separation; calibration and model behavior require further investigation.
+- Native cellular call interception is not implemented.
+- The supported prototype path uses microphone/speakerphone acoustic capture.
+- The transaction flow is simulated.
+- No real banking, UPI, payment, or telephony service is invoked.
+- The prototype is not ready for production financial, identity, or telephony decisions.
+- The previously committed certificate/private-key material must be treated as compromised and must not be reused.
+- The demo certificate exception is intended only for local development testing.
+- Overall repository coverage is approximately 39%, while security-critical modules have targeted higher coverage.
+- Automated tests validate implementation behavior and contracts; they do not establish real-world voice-deepfake detection accuracy.
 
 ---
 
@@ -304,3 +322,28 @@ Real financial and native telephony deployment: not ready
 ```
 
 The prototype is suitable for a controlled SIH demonstration after the claims and documentation are corrected. It is not ready for real financial, identity, or telephony deployment.
+
+---
+
+## 16. Final Claim Verification Table
+
+| Claim | Evidence file or command | Actual result | Status |
+| :--- | :--- | :--- | :--- |
+| Branch identity | `git branch --show-current` | `voiceguard/sih2026-hardening` | Verified |
+| Final commit identity | `git rev-parse HEAD` | `756c5e54084469e91433fed6b568014afc2a8a2a` | Verified |
+| Clean working tree | `git status --short` | No output (clean) | Verified |
+| No tracked private keys | tracked-file search | No output (zero tracked keys) | Verified |
+| Secure TLS default | `lib/config.dart` line 86: `kDemoMode` defaults `false` | `const bool kDemoMode = bool.fromEnvironment('DEMO_MODE', defaultValue: false);` | Verified |
+| Silence never allows | `tests/test_audio_quality.py::test_silence_never_returns_bonafide` | PASSED | Verified |
+| Silence preserves hold | `tests/test_risk_aggregator.py::test_silence_after_held_gives_insufficient` | PASSED | Verified |
+| Centralized thresholds | Repository-wide search + `tests/test_api_schema.py::test_threshold_from_config` | No independent production constants; test PASSED | Verified |
+| Backend/Flutter schema match | `tests/test_api_schema.py::test_response_dict_has_flutter_fields` | PASSED | Verified |
+| Python tests | `pytest tests/ -v` | 54 passed in 10.54s | Verified |
+| Dart analysis | `dart analyze` | No issues found | Verified |
+| Flutter analysis | `flutter analyze` | NOT VERIFIED — not executed separately | Partially verified |
+| Flutter tests | `flutter test` | 1 passed (All tests passed!) | Verified |
+| ML evaluation scope | `evaluation/results.json` | 250 clips (50 bonafide, 200 spoof); FPR=1.0 at threshold 0.30 | Verified |
+| Simulated transaction labeling | `lib/widgets/transaction_card.dart` line 97 | `'Demo mode — no real financial transaction is executed'` | Verified |
+| No machine-specific links | `grep -RInE 'file:///\|C:/Users\|c:/Users' docs/ README.md` | No actual machine-specific links | Verified |
+| Privacy language | `backend.py` docstring, `docs/DATA_FLOW_AND_PRIVACY.md` | Ephemeral processing; no DPDP/zero-retention/guaranteed-deletion claims | Verified |
+| Certificate compromise disclosed | `docs/SECURITY_REMEDIATION.md` section 1 | "must be treated as compromised" | Verified |
