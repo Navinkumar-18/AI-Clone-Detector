@@ -187,8 +187,15 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
         encoder: AudioEncoder.pcm16bits,
         sampleRate: kLiveSampleRate,
         numChannels: 1,
-        // Enable noise suppression for cleaner analysis
         noiseSuppress: true,
+        echoCancel: true,
+        autoGain: true,
+        audioInterruption: AudioInterruptionMode.none,
+        androidConfig: AndroidRecordConfig(
+          audioSource: AndroidAudioSource.voiceCommunication,
+          audioManagerMode: AudioManagerMode.modeInCommunication,
+          speakerphone: true,
+        ),
       );
       final stream = await _recorder.startStream(config);
 
@@ -368,6 +375,14 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     const alpha = 0.3;
     const highThreshold = 0.85;
     const mediumThreshold = 0.40;
+
+    // If chunk had no speech (silence / muted mic):
+    // Do not escalate risk or advance persistence threat counter.
+    if (!result.speechDetected) {
+      _consecutiveHighCount = 0;
+      _persistenceTriggered = false;
+      return;
+    }
 
     _currentScore = result.detectionScore;
 
@@ -779,14 +794,36 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'AUDIO INPUT',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.4),
-                    letterSpacing: 1,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'AUDIO INPUT',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.4),
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    if (_audioLevel < 0.03 && _callState == _CallState.active)
+                      const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.volume_up_rounded, size: 13, color: Color(0xFFE3B341)),
+                          SizedBox(width: 4),
+                          Text(
+                            'SILENT (ENABLE SPEAKERPHONE)',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFE3B341),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 10),
                 _buildAudioLevelBars(),

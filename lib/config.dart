@@ -22,12 +22,23 @@ const String kEmulatorBackendUrl = 'https://10.0.2.2:8443';
 const String kPhysicalDeviceBackendUrl = 'https://192.168.137.45:8443';
 
 /// Default backend URL used as the initial fallback.
+/// Dynamically resolves to:
+/// - Desktop (Windows/macOS/Linux): https://127.0.0.1:8443
+/// - Android / Mobile: https://10.0.2.2:8443 (emulator loopback)
 /// Can be overridden at build/run time via:
-///   flutter run --dart-define=BACKEND_URL=https://10.0.2.2:8443
-const String kDefaultBackendUrl = String.fromEnvironment(
-  'BACKEND_URL',
-  defaultValue: kPhysicalDeviceBackendUrl,
-);
+///   flutter run --dart-define=BACKEND_URL=https://...
+String get kDefaultBackendUrl {
+  const env = String.fromEnvironment('BACKEND_URL');
+  if (env.isNotEmpty) return env;
+  try {
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      return 'https://127.0.0.1:8443';
+    }
+  } catch (_) {
+    // Web or non-IO platform fallback
+  }
+  return kEmulatorBackendUrl;
+}
 
 /// Request timeout for the /predict call.
 /// Large audio files on a slow demo-day Wi-Fi may need more time.

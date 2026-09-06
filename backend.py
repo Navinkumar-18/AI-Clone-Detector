@@ -55,6 +55,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import librosa
+import numpy as np
 import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -178,6 +179,23 @@ def _run_inference(audio_path: str) -> dict:
     if audio is None or len(audio) == 0:
         raise HTTPException(status_code=422, detail="Audio file is empty or unreadable.")
 
+    # --- voice activity / silence check -----------------------------------
+    # If audio is digital silence or below audible speech threshold (e.g. muted mic,
+    # in-call OS mic suppression, or silent gap), running wav2vec2 produces
+    # an artificial ~95% spoof score due to unconditioned transformer bias.
+    # We gate inference on minimum RMS energy (0.003).
+    rms = float(np.sqrt(np.mean(audio ** 2)))
+    if rms < 0.003:
+        log.info("SILENCE | rms=%.6f < 0.003 — no active audio/speech, skipping classifier", rms)
+        return {
+            "label": "bonafide",
+            "confidence": 0.9999,
+            "risk_level": "low",
+            "prob_real": 1.0,
+            "prob_fake": 0.0,
+            "speech_detected": False,
+        }
+
     # --- feature extraction -----------------------------------------------
     try:
         inputs = feature_extractor(
@@ -228,6 +246,7 @@ def _run_inference(audio_path: str) -> dict:
         "risk_level": risk_level,
         "prob_real": round(prob_real, 6),
         "prob_fake": round(prob_fake, 6),
+        "speech_detected": True,
     }
 
 
@@ -308,8 +327,13 @@ async def predict(file: UploadFile = File(...)):
         result["risk_level"],
     )
 
-    risk_category = _RISK_CATEGORY_MAP.get(result["risk_level"], "Medium Risk")
-    risk_percentage = round(result["confidence"] * 100, 1)
+    speech_detected = result.get("speech_detected", True)
+    if not speech_detected:
+        risk_category = "Low Risk"
+        risk_percentage = 0.0
+    else:
+        risk_category = _RISK_CATEGORY_MAP.get(result["risk_level"], "Medium Risk")
+        risk_percentage = round(result["confidence"] * 100, 1)
 
     return {
         "label": result["label"],
@@ -317,6 +341,7 @@ async def predict(file: UploadFile = File(...)):
         "risk_level": result["risk_level"],
         "risk_percentage": risk_percentage,
         "risk_category": risk_category,
+        "speech_detected": speech_detected,
     }
 
 
@@ -349,7 +374,8 @@ async def live_analyze(file: UploadFile = File(...)):
           "prob_fake":       float 0.0-1.0,
           "action":          "allow" | "verify" | "block",
           "risk_percentage": float 0.0-100.0,
-          "risk_category":   "Low Risk" | "Medium Risk" | "Critical"
+          "risk_category":   "Low Risk" | "Medium Risk" | "Critical",
+          "speech_detected": bool
         }
     """
     if not _state["model_loaded"]:
@@ -372,16 +398,23 @@ async def live_analyze(file: UploadFile = File(...)):
         if tmp_path:
             _cleanup_temp(tmp_path)
 
-    action = _ACTION_MAP.get(result["risk_level"], "verify")
-    risk_category = _RISK_CATEGORY_MAP.get(result["risk_level"], "Medium Risk")
-    risk_percentage = round(result["confidence"] * 100, 1)
+    speech_detected = result.get("speech_detected", True)
+    if not speech_detected:
+        action = "allow"
+        risk_category = "Low Risk"
+        risk_percentage = 0.0
+    else:
+        action = _ACTION_MAP.get(result["risk_level"], "verify")
+        risk_category = _RISK_CATEGORY_MAP.get(result["risk_level"], "Medium Risk")
+        risk_percentage = round(result["confidence"] * 100, 1)
 
     log.info(
-        "LIVE    | label=%s | score=%.4f | risk=%s | action=%s",
+        "LIVE    | label=%s | score=%.4f | risk=%s | action=%s | speech=%s",
         result["label"],
         result["prob_fake"],
         result["risk_level"],
         action,
+        speech_detected,
     )
 
     return {
@@ -394,6 +427,7 @@ async def live_analyze(file: UploadFile = File(...)):
         "action": action,
         "risk_percentage": risk_percentage,
         "risk_category": risk_category,
+        "speech_detected": speech_detected,
     }
 
 

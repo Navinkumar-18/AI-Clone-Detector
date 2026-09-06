@@ -13,6 +13,7 @@ class LiveAnalysisResult {
   final double probReal;       // prob_real 0.0–1.0
   final double probFake;       // prob_fake 0.0–1.0
   final String action;         // "allow" | "verify" | "block"
+  final bool speechDetected;   // false if chunk was silence / muted mic
 
   const LiveAnalysisResult({
     required this.label,
@@ -22,6 +23,7 @@ class LiveAnalysisResult {
     required this.probReal,
     required this.probFake,
     required this.action,
+    this.speechDetected = true,
   });
 
   factory LiveAnalysisResult.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class LiveAnalysisResult {
       probReal: (json['prob_real'] as num).toDouble(),
       probFake: (json['prob_fake'] as num).toDouble(),
       action: json['action'] as String,
+      speechDetected: json['speech_detected'] as bool? ?? true,
     );
   }
 }
