@@ -6,14 +6,15 @@ Server : python backend.py  (HTTPS on 0.0.0.0:8443 by default)
 
 Configuration loaded from: config/model_config.yaml → voiceguard_config.py
 
-ZERO-PERSISTENCE PRIVACY GUARANTEE
------------------------------------
-This server processes audio ONLY in ephemeral temp files that are created and
-deleted within a single request scope.  No raw audio, PCM data, or WAV file
-is ever persisted to disk, database, or log beyond the lifetime of that
-request.  Only scalar metadata (label, confidence, risk_level) is returned
-to the client.  Every temp file deletion is followed by an explicit PRIVACY
-audit log line.
+EPHEMERAL AUDIO HANDLING
+------------------------
+VoiceGuard is designed for ephemeral audio processing. Temporary audio is
+processed for inference and cleaned up after processing. Structured cleanup
+events are logged without intentionally storing raw audio content.
+Only scalar metadata (label, confidence, risk_level) is returned
+to the client. Operating-system memory, swap files, crash dumps, client
+buffers, infrastructure logs, and backups are outside the guarantees of
+this prototype.
 
 Endpoints
 ---------

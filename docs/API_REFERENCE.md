@@ -3,14 +3,18 @@
 **Base URLs**:
 - Demo Mode: `https://localhost:8443` (TLS self-signed) or `http://localhost:8000` (Plain HTTP dev mode)
 - API Version: `2.0.0`
-- Model: `garystafford/wav2vec2-deepfake-voice-detector` (revision `voiceguard-v1`)
+- Model: `garystafford/wav2vec2-deepfake-voice-detector` (version `voiceguard-v1`, upstream revision `c66306024a7ede0be291e9c4558b37634782dc4e`)
 
 ---
 
-## 1. Zero-Persistence Guarantee
+## 1. Ephemeral Audio Processing
 
-VoiceGuard does **not** persist uploaded audio, raw PCM arrays, or voice biometrics to disk, database, or logs.
-Temporary audio files created for format conversion are unlinked immediately in request `finally` blocks, followed by an explicit `PRIVACY` audit log entry. Only scalar prediction telemetry and audio quality metrics are returned to the caller.
+VoiceGuard is designed for ephemeral audio processing. Temporary audio is processed for inference and cleaned up after processing. Structured cleanup events are logged without intentionally storing raw audio content.
+
+Temporary audio files created during upload handling are unlinked in request `finally` blocks, followed by a structured `PRIVACY` cleanup log entry. Only scalar prediction telemetry and audio quality metrics are returned to the caller.
+
+> [!WARNING]
+> Operating-system memory, swap files, crash dumps, client buffers, infrastructure logs, and backups are outside the guarantees of this prototype.
 
 ---
 
@@ -41,7 +45,7 @@ Liveness probe to confirm that the server process is responsive.
 ---
 
 ### `GET /ready`
-Readiness probe to confirm that the PyTorch/HuggingFace model is materialized in memory and ready for inference.
+Readiness probe to confirm that the model is loaded in memory and ready for inference.
 
 **Response `200 OK`**:
 ```json
@@ -50,23 +54,21 @@ Readiness probe to confirm that the PyTorch/HuggingFace model is materialized in
   "model_loaded": true,
   "model_version": "voiceguard-v1",
   "threshold_version": "threshold-v2",
-  "device": "cuda",
+  "device": "cpu",
   "demo_mode": false
 }
 ```
+*If model weights are still loading, returns HTTP 503 or `status: "not_ready"`.*
 
 ---
 
 ### `POST /predict`
-Uploads an audio file (`.wav`, `.mp3`, `.flac`, `.m4a`, `.ogg`) to evaluate synthetic speech indicators.
+Upload an audio file (.wav, .flac, .mp3, .ogg, .m4a, .aac, .webm) for comprehensive analysis.
 
-**Headers**:
-- `Content-Type: multipart/form-data`
+**Form Data**:
+- `file`: Audio file binary (maximum 10 MB).
 
-**Request Body**:
-- `file`: Audio file binary (maximum size: 10,485,760 bytes / 10MB)
-
-**Successful Response `200 OK`**:
+**Response `200 OK`**:
 ```json
 {
   "decision": "low_risk",
@@ -75,20 +77,20 @@ Uploads an audio file (`.wav`, `.mp3`, `.flac`, `.m4a`, `.ogg`) to evaluate synt
   "spoof_score": 0.0412,
   "confidence": 0.9588,
   "risk_level": "low",
-  "risk_percentage": 95.9,
+  "risk_percentage": 4.12,
   "speech_detected": true,
   "audio_quality": {
-    "status": "acceptable",
-    "duration_seconds": 3.42,
-    "rms": 0.124,
+    "status": "clean",
+    "rms_energy": 0.042,
     "snr_db": 22.4,
     "clipping_ratio": 0.0,
-    "voiced_ratio": 0.78
+    "voiced_frame_ratio": 0.45,
+    "duration_seconds": 3.8
   },
   "evidence": {
-    "window_count": 0,
-    "high_risk_window_count": 0,
-    "analysis_age_ms": 0
+    "acoustic_anomaly": 0.0412,
+    "spectral_flatness": 0.0,
+    "pitch_stability": 0.0
   },
   "reason_codes": [],
   "model_version": "voiceguard-v1",
@@ -97,53 +99,9 @@ Uploads an audio file (`.wav`, `.mp3`, `.flac`, `.m4a`, `.ogg`) to evaluate synt
 }
 ```
 
-**Quality Gated Response (e.g., Silent Audio) `200 OK`**:
-```json
-{
-  "decision": "insufficient_evidence",
-  "action": "verify",
-  "label": "unknown",
-  "spoof_score": 0.0,
-  "confidence": 0.0,
-  "risk_level": "unknown",
-  "risk_percentage": 0.0,
-  "speech_detected": false,
-  "audio_quality": {
-    "status": "silent",
-    "duration_seconds": 2.0,
-    "rms": 0.0,
-    "snr_db": null,
-    "clipping_ratio": 0.0,
-    "voiced_ratio": 0.0
-  },
-  "evidence": {
-    "window_count": 0,
-    "high_risk_window_count": 0,
-    "analysis_age_ms": 0
-  },
-  "reason_codes": [
-    "no_speech"
-  ],
-  "model_version": "voiceguard-v1",
-  "threshold_version": "threshold-v2",
-  "request_id": "a9010f3c-589e-4e89-a228-3e4b77f901cb"
-}
-```
-
 ---
 
 ### `POST /live/analyze`
-Uploads a short streaming chunk (typically 0.5s - 2.0s) for real-time call monitoring.
+Receives a sliding 4-second audio window for real-time risk assessment.
 
-> **Important**: This endpoint outputs **clip-level** evidence (`verification_required` or `low_risk`). The final call-level status (`action_held`) is aggregated on the client side across multiple consecutive sliding windows.
-
-**Response `200 OK`**: Matches `DetectionResponse` schema with window-level evidence.
-
----
-
-## 4. Error Status Codes
-
-- `413 Payload Too Large`: Upload exceeds `cfg.server.maximum_upload_bytes` (10 MB).
-- `415 Unsupported Media Type`: Uploaded extension not in `allowed_extensions` (`.wav`, `.mp3`, `.flac`, `.m4a`, `.ogg`).
-- `422 Unprocessable Entity`: Audio cannot be parsed by audio decoding engines.
-- `429 Too Many Requests`: Client exceeded `cfg.server.rate_limit_requests_per_minute` (60 req/min default).
+**Response `200 OK`**: Identical canonical `DetectionResponse` schema as `/predict`.

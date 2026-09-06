@@ -7,7 +7,7 @@ Tests:
 - /live/analyze endpoint
 - Rate limiting and request ID tracing
 - Error responses (415, 413, 422)
-- Zero-persistence guarantees (temp file cleanup)
+- Ephemeral audio handling (temp file cleanup)
 """
 
 from __future__ import annotations

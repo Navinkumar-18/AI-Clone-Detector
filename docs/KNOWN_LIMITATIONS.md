@@ -1,43 +1,67 @@
 # VoiceGuard — Known Limitations
 
-## Model Limitations
+## 1. Controlled-Demo Readiness Rating
 
-1. **Score overlap on ASVspoof 2019 LA**: The committed threshold report records a 100% false-positive rate at the reviewed threshold. The available evaluation artifact shows substantial score overlap between bona-fide and spoof samples.
+```text
+Controlled prototype demonstration readiness: 8/10
+ML production readiness: 3/10
+Real financial and native telephony deployment: not ready
+```
 
-2. **Domain mismatch**: The model was trained on English speech from the ASVspoof 2019 dataset. It has NOT been evaluated on:
-   - Indian-language speech (Hindi, Tamil, Telugu, etc.)
-   - Telephony-quality audio (8kHz, codec artifacts)
-   - Mobile microphone recordings in noisy environments
-   - Indian accent English speech
+The prototype is suitable for a controlled SIH demonstration after the claims and documentation are corrected. It is not ready for real financial, identity, or telephony deployment.
 
-3. **Uncalibrated outputs**: The `prob_fake` softmax score is NOT a calibrated probability. A score of 0.90 does NOT mean "90% chance of being fake."
+---
 
-4. **Attack coverage**: Only tested against ASVspoof 2019 LA attack algorithms (TTS/VC systems A07-A19). Modern voice cloning systems (e.g., XTTS, Bark, RVC) were not in the evaluation.
+## 2. Machine Learning Limitations
 
-## System Limitations
+1. **Score Overlap & False-Positive Rate**:
+   - Evaluated a 250-clip subset of the ASVspoof 2019 LA evaluation set: 50 bona-fide and 200 spoof samples.
+   - On this evaluated subset, using the production model and threshold 0.30, all 50 bona-fide samples were classified above the spoof threshold, producing an observed FPR of 100% on this subset. The committed threshold report records a 100% false-positive rate at the reviewed threshold. A complete threshold sweep is required before making any claim about all thresholds.
+   - The score overlap is consistent with poor class separation under this evaluation, although the exact cause requires further investigation.
+   - Raw score distribution on evaluated subset:
+     | Class | N | Min | p25 | Median | p75 | Max | Mean |
+     | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+     | **bonafide** | 50 | **0.8107** | 0.8699 | **0.8976** | 0.9877 | **0.9952** | **0.9080** |
+     | **spoof** | 200 | **0.0316** | 0.3756 | **0.8620** | 0.8932 | **0.9953** | **0.7050** |
 
-1. **No call interception**: The app captures microphone audio via the `record` package. It does NOT intercept actual cellular or VoIP call audio. Speakerphone mode is required.
+2. **Domain & Language Mismatch**:
+   - The pretrained model was evaluated on English speech. It has not been fine-tuned or evaluated on:
+     - Indian regional languages (Hindi, Tamil, Telugu, Kannada, Bengali, etc.)
+     - Indian-accented English speech
+     - Telephony-band audio (8 kHz AMR/GSM)
+     - Real-world mobile microphone acoustic reverberation
 
-2. **No speaker verification**: The system does NOT verify who is speaking. It detects synthetic speech characteristics, not speaker identity.
+3. **Uncalibrated Heuristic Outputs**:
+   - The `prob_fake` softmax output is not a calibrated Bayesian probability. A score of 0.85 does not represent an 85% mathematical probability of deepfake origin.
 
-3. **No real transaction blocking**: Transaction features are simulated for demonstration. No bank API, UPI, or payment system is integrated.
+4. **Attack Algorithm Coverage**:
+   - Evaluated against ASVspoof 2019 LA systems (A07-A19). Modern zero-shot voice cloning systems (e.g. XTTS-v2, ElevenLabs, OpenVoice) require dedicated empirical evaluation.
 
-4. **Single-process rate limiter**: The in-memory rate limiter is suitable only for a single-process demo deployment.
+---
 
-5. **Self-signed TLS**: The demo uses self-signed certificates. These are NOT suitable for production deployment.
+## 3. System & Telephony Limitations
 
-6. **Event-loop isolation**: Inference runs in a thread pool executor. Under heavy load, the bounded concurrency limit may cause requests to queue.
+1. **Native Telephony & Call Interception**:
+   - Native cellular call interception, real telephony integration, UPI integration, bank integration, and real transaction blocking were not tested and are outside the prototype scope.
+   - The application requires speakerphone audio capture to monitor live conversations.
 
-## Privacy Limitations
+2. **No Speaker Verification**:
+   - The system does not verify who is speaking or authenticate caller identity. It assesses synthetic speech characteristics, not biometric identity.
 
-1. **Audio transmission**: Audio is transmitted to the backend over HTTPS for inference. In a production system, on-device inference would be preferred.
+3. **Simulated Financial Protection**:
+   - The transaction workflow and card are simulated demonstration artifacts. No real banking APIs (UPI, IMPS, NEFT) or card gateways are invoked.
 
-2. **Temporary files**: Audio is stored in temporary files during inference and deleted immediately after. The deletion is best-effort — a process crash could leave orphaned temp files.
+4. **Single-Process Rate Limiter**:
+   - The in-memory rate limiter is suitable for a single-process prototype only. It is not sufficient for distributed production deployment.
 
-## UI/UX Limitations
+5. **Self-Signed TLS**:
+   - Local self-signed certificates are for development-only testing. Public deployment requires new trusted certificate/key material.
 
-1. **No offline mode**: The app requires a backend connection. If the backend is unreachable, analysis cannot proceed.
+---
 
-2. **Latency**: Each analysis window takes 1-3 seconds for inference plus network round-trip. Real-time detection has a 4-6 second delay.
+## 4. Ephemeral Storage Boundaries & Privacy Limitations
 
-3. **No historical analysis**: The app does not persist call history or analysis results between sessions.
+1. **Privacy Scope & Boundaries**:
+   - VoiceGuard is designed for ephemeral audio processing. Temporary audio is processed for inference and cleaned up after processing. Structured cleanup events are logged without intentionally storing raw audio content.
+   - **Qualification**: Operating-system memory, swap files, crash dumps, client buffers, infrastructure logs, and backups are outside the guarantees of this prototype.
+   - Designed around data-minimization and ephemeral-processing principles. This prototype has not undergone a formal legal or regulatory compliance assessment.

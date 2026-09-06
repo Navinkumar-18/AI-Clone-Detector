@@ -1,96 +1,74 @@
-# VoiceGuard — Security Remediation Report
+# VoiceGuard — Security Remediation & Certificate-Key Hygiene
 
 **Audit Target**: `Navinkumar-18/AI-Clone-Detector`  
 **Branch**: `voiceguard/sih2026-hardening`  
-**Security Status**: Remediated on working branch  
+**Security Status**: Remediated on hardening branch  
 
 ---
 
-## 1. Compromised Cryptographic Key Material
+## 1. Secret Remediation & Certificate-Key Hygiene
 
-### The Issue
-In earlier commits on the `main` branch (prior to base commit `45b9547`), raw certificate and private key files were committed directly into version control:
-- `cert.pem`: Self-signed TLS public certificate
+### Compromised Certificate and Private Key
+In earlier commits on the repository prior to base commit `45b9547`, raw certificate and private key files were committed into version control:
+- `cert.pem`: Self-signed public certificate
 - `key.pem`: RSA private key (2048-bit, unencrypted)
 
-### Security Statement
-> **CRITICAL SECURITY DISCLOSURE**:  
-> `cert.pem` and `key.pem` were previously committed and must be treated as compromised. They must not be reused for public deployment. New certificates and keys must be generated, and Git-history cleanup may be required separately.
+### Security Statement:
+> "cert.pem and key.pem were previously committed and must not be reused for public deployment. New certificates and keys must be generated. Git-history cleanup may be required separately."
 
-### Actions Taken on Current Branch
-1. **Removed from Tracking**: Executed `git rm --cached cert.pem key.pem`. The files are no longer tracked in the repository index.
-2. **Exclusion from Future Commits**: Updated `.gitignore` with strict exclusion rules:
-   ```gitignore
-   *.pem
-   *.crt
-   *.key
-   *.pfx
-   *.p12
-   ```
-   Verified with `git check-ignore cert.pem key.pem test.key foo.crt`.
-3. **On-Demand Ephemeral Generation**: `generate_cert.py` is invoked dynamically at runtime if local certificates are missing. Newly generated files are automatically ignored by git.
-
-### History Retention and Cleanup Procedure
-While the files are removed from the working branch, they persist in historical git commits prior to the hardening branch. To clean historical commits prior to public release:
-```bash
-# Optional history cleanup using git-filter-repo (destructive operation):
-pip install git-filter-repo
-git filter-repo --invert-paths --path cert.pem --path key.pem
-
-# Requires coordinated force push to all remote branches:
-git push origin --force --all
-```
-> **Notice**: As per security review guidelines, historical git rewrites are not performed automatically without explicit team coordination, to avoid breaking developer clones.
-
-### Key Rotation Requirements for Production
-- **Never reuse development keys**: Any key material generated on development machines must never be deployed to production.
-- **Production PKI**: Production deployments must provision valid CA-signed certificates (via Let's Encrypt, DigiCert, AWS ACM, etc.) and inject secrets via environment variables or secret managers (e.g., HashiCorp Vault, AWS Secrets Manager).
+### Remediation Actions Taken on Branch:
+1. **Removed from Tracking**:
+   - Removed cert.pem and key.pem from Git tracking on the hardening branch and added certificate/key patterns to .gitignore. Because these files were previously committed, the old private key must be treated as compromised. Historical removal was not automatically performed.
+   - Verification command:
+     ```bash
+     git ls-files | grep -E '(^|/)(cert|key)\.(pem|crt|key)$' || true
+     # Output: empty (zero tracked keys)
+     ```
+2. **Git Exclusion Configuration**:
+   - Updated `.gitignore` to prevent newly generated certificates and keys from being accidentally tracked:
+     ```gitignore
+     *.pem
+     *.crt
+     *.key
+     *.pfx
+     *.p12
+     ```
+   - *Clarification*: Adding files to `.gitignore` prevents future commits from tracking them; it does not remove files from prior Git history.
+3. **Dynamic Ephemeral Generation**:
+   - `generate_cert.py` is called dynamically on startup if local certificates are missing. Local self-signed certificates are for development-only testing. Public deployment requires new trusted certificate/key material issued by a trusted Certificate Authority.
 
 ---
 
-## 2. TLS Certificate Verification & Demo Mode Scoping
+## 2. TLS Certificate Verification & Demo Scoping
 
-### The Previous Vulnerability
+### Vulnerability in Earlier Prototype
 Earlier prototype code in `lib/main.dart` installed a global `HttpOverrides` class:
 ```dart
 // INSECURE PROTOTYPE PATTERN (REMOVED):
 HttpOverrides.global = _DemoHttpOverrides(); // Bypassed TLS for ALL process traffic
 ```
-This disabled certificate validation globally across all packages and plugins running in the Dart VM.
+This disabled certificate validation globally across all packages and network connections in the Dart process.
 
-### The Remediated Architecture
-We **restricted the development-only self-signed certificate exception to the VoiceGuard HTTP client and enabled it only when explicit demo mode is active. Secure mode keeps certificate verification enabled.**
+### Remediated Architecture:
+Removed the global HttpOverrides bypass. Restricted the development-only self-signed certificate exception to the VoiceGuardApiClient, scoped to the configured target host and enabled only when kDemoMode && !kReleaseMode.
 
-1. **Global Override Completely Removed**: `HttpOverrides.global` is deleted from `lib/main.dart`. No global certificate override affects unrelated HTTP traffic.
-2. **Scoped to VoiceGuard Client**: In `lib/api_client.dart`, an `IOClient` attaches a `badCertificateCallback` that verifies that the hostname matches `BackendConfig.baseUrl`.
-3. **Secure Mode by Default**: `kDemoMode` defaults to `false` in `lib/config.dart`. Standard TLS verification is active out-of-the-box.
-4. **Explicit Opt-In for Demo**: Demo mode requires explicit compile-time opt-in:
-   ```bash
-   flutter run -d windows --dart-define=DEMO_MODE=true
-   ```
-5. **Forbidden in Release Builds**: Guarded by `!kReleaseMode`. Even if `--dart-define=DEMO_MODE=true` is accidentally specified in a release build, the bypass is strictly ignored.
-6. **Visible UI Indicator**: When demo mode is active, the app bar renders a prominent visual `DEMO MODE` badge.
-
-### Backend Default Verification
-In `voiceguard_config.py` and `config/model_config.yaml`:
-```yaml
-security:
-  demo_mode: false # Secure default
-  allowed_cors_origins:
-    - "http://localhost"
-    - "https://localhost"
-```
-Confirmed by automated test `tests/test_security_config.py::test_demo_mode_default_false`:
-`VOICEGUARD_DEMO_MODE=false` is the secure default.
+1. **Global Override Removed**: `HttpOverrides.global` was deleted from `lib/main.dart`. Unrelated network traffic is never subject to certificate validation bypasses.
+2. **Target Host Scoped**: In `lib/api_client.dart`, an `IOClient` attaches a `badCertificateCallback` that accepts certificates only when the host strictly matches the configured `BackendConfig.baseUrl`.
+3. **Secure Mode by Default**: `kDemoMode` defaults to `false` in `lib/config.dart`. Standard TLS validation is active out-of-the-box.
+4. **Forbidden in Release Builds**: Guarded by `!kReleaseMode`. Release builds cannot enable the demo bypass, even if the flag is passed.
+5. **Development Scope**: Local self-signed certificates are for development-only testing. Public deployment requires new trusted certificate/key material.
 
 ---
 
 ## 3. Upload Protection & Denial-of-Service Defense
 
-| Vector | Previous Prototype | Remediated Architecture |
+| Defense Layer | Previous Implementation | Remediated Architecture |
 | :--- | :--- | :--- |
-| **Upload Size** | `await file.read()` (read entire file into RAM) | `_read_upload_limited()` streams in 64 KB chunks, rejecting if bytes $> 10\text{ MB}$ (`HTTP 413`) |
-| **Audio Duration** | No length limit | Gated by `max_duration=30.0` in `audio_quality.py` |
-| **Concurrency** | Unbounded async coroutines | Bounded `ThreadPoolExecutor(max_workers=4)` with `asyncio.Semaphore` |
-| **Abuse / Flooding** | No rate limits | Sliding-window IP rate limiter (60 req/min, `HTTP 429`) |
-| **Disk Exhaustion** | Temp files unlinked inconsistently | Unconditionally removed in `finally` block with `PRIVACY` audit logging |
+| **Upload Size Ceiling** | `await file.read()` (buffered all into RAM) | `_read_upload_limited()` streams in 64 KB chunks, rejecting streams exceeding 10 MB with `HTTP 413` |
+| **Audio Duration Bounds** | No upper duration limit | Gated by `max_duration=60.0` in `audio_quality.py` |
+| **Worker Concurrency** | Unbounded async coroutines | Bounded `ThreadPoolExecutor` (4 workers) guarded by `asyncio.Semaphore(4)` |
+| **Rate Limiting** | No request limits | In-memory sliding-window IP rate limiter (60 req/min, `HTTP 429`) |
+| **Disk Cleanup** | Unlinked inconsistently | Unconditionally removed in `finally` block with structured `PRIVACY` cleanup logging |
+
+### Rate Limiter Scope:
+The in-memory rate limiter is suitable for a single-process prototype only. It is not sufficient for distributed production deployment.

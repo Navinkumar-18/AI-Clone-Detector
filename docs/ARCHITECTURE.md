@@ -37,6 +37,7 @@
 │                                                                             │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
 │  │ Middleware: Request ID (X-Request-ID) + IP Rate Limiter (60 req/min)  │  │
+│  │ (In-memory rate limiter is for single-process demo only)              │  │
 │  └───────────────────────────────────┬───────────────────────────────────┘  │
 │                                      │                                      │
 │  ┌───────────────────────────────────▼───────────────────────────────────┐  │
@@ -45,7 +46,7 @@
 │                                      │                                      │
 │  ┌───────────────────────────────────▼───────────────────────────────────┐  │
 │  │ Ephemeral Transient Storage: /tmp/vg_<UUID>.wav                       │  │
-│  │ Unconditional deletion in finally block with PRIVACY audit log        │  │
+│  │ Cleanup in finally block with structured PRIVACY cleanup log          │  │
 │  └───────────────────────────────────┬───────────────────────────────────┘  │
 │                                      │                                      │
 │  ┌───────────────────────────────────▼───────────────────────────────────┐  │
@@ -64,7 +65,8 @@
 │                                      │                                      │
 │  ┌───────────────────────────────────▼───────────────────────────────────┐  │
 │  │ Response Dispatch: Canonical DetectionResponse (Pydantic)             │  │
-│  │ Decisions: low_risk | verification_required | action_held | uncertain │  │
+│  │ Decisions: low_risk | verification_required | action_held             │  │
+│  │            | insufficient_evidence                                    │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -73,7 +75,7 @@
 
 ## 2. Non-Blocking Inference & Concurrency Design
 
-To prevent heavy CPU/GPU PyTorch operations from freezing the asynchronous FastAPI event loop, VoiceGuard implements an off-loop thread pool architecture:
+To prevent synchronous PyTorch calculations from blocking the asynchronous FastAPI event loop:
 
 1. **Thread Pool Offload**:
    ```python
@@ -86,16 +88,13 @@ To prevent heavy CPU/GPU PyTorch operations from freezing the asynchronous FastA
    ```
 2. **Concurrency Limiting**:
    - Governed by `_inference_semaphore = asyncio.Semaphore(cfg.server.maximum_concurrency)`.
-   - Default concurrency limit: 4 parallel workers.
-   - Prevents server thread exhaustion and out-of-memory (OOM) crashes under concurrent load.
+   - Bounded concurrency limit: 4 parallel workers.
 3. **Event Loop Responsiveness**:
-   - Liveness (`GET /health`) and readiness (`GET /ready`) probes execute immediately without waiting behind queued inference jobs.
+   - Liveness (`GET /health`) and readiness (`GET /ready`) probes execute immediately without waiting behind queued inference tasks.
 
 ---
 
 ## 3. Decision Matrix & Risk State Machine
-
-VoiceGuard enforces four canonical states:
 
 ```
                           ┌────────────────────────┐
@@ -111,7 +110,7 @@ VoiceGuard enforces four canonical states:
                           │ Action: Allow w/Caution│
                           └───────────┬────────────┘
                                       │
-                         (Score Spike: Spoof ≥ 0.40)
+                         (Score Spike: Spoof ≥ 0.30)
                                       │
                                       ▼
                           ┌────────────────────────┐
@@ -135,7 +134,13 @@ VoiceGuard enforces four canonical states:
 ```
 
 ### Safety Invariants:
-1. **Silence Invariant**: Silence **never** transitions to `LOW_RISK` or `ALLOW_WITH_CAUTION`.
-2. **Hold Preservation**: If the state is `ACTION_HELD` and silence or network disruption occurs, the state transitions to `INSUFFICIENT_EVIDENCE` while the action **remains held**.
-3. **No Single-Spike Freezes**: An isolated high-risk chunk generates `VERIFICATION_REQUIRED`. Only persistent risk ($N=2$) triggers `ACTION_HELD`.
-4. **Hysteresis Cooldown**: Escaping an active hold requires $M=3$ consecutive clean windows.
+1. **Silence Invariant**: Digital silence **never** returns `bonafide` or `allow_with_caution`.
+2. **Hold Preservation**:
+   ```text
+   ACTION_HELD
+       → silence/backend failure
+       → INSUFFICIENT_EVIDENCE
+       → sensitive action remains held
+   ```
+3. **No Automatic Allowance**: A sensitive action never automatically becomes allowed because of silence, timeout, stale data, or backend failure.
+4. **Hysteresis Cooldown**: Escaping an active hold requires 3 consecutive clean windows.

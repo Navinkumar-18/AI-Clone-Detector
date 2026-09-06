@@ -1,15 +1,15 @@
 # VoiceGuard — Real-Time Voice-Clone & Audio-Deepfake Risk Detection
 
-> **Smart India Hackathon (SIH 2026) Prototype Solution**  
-> *Privacy-aware, real-time risk assessment and step-up verification for AI voice-clone impersonation attacks in financial and emergency transactions.*
+> **Smart India Hackathon (SIH 2026) Solution Prototype**  
+> "VoiceGuard is a privacy-aware prototype for detecting suspicious synthetic-speech characteristics and requesting independent verification before a sensitive action. It processes audio ephemerally, checks audio quality before inference, aggregates evidence across multiple windows, and never treats silence or unavailable analysis as proof that a caller is genuine. The current model has significant evaluation limitations, so the prototype deliberately uses risk-based step-up verification rather than claiming identity authentication or real transaction blocking."
 
 ---
 
 ## 📌 Executive Summary
 
-With the advent of commercial generative speech models and one-shot voice cloning, malicious actors can clone a trusted person's voice from a 3-second audio snippet to bypass verbal authentication, deceive call center operators, and execute fraudulent money transfers.
+With the proliferation of commercial generative speech synthesis and one-shot voice cloning, malicious actors can clone voices to deceive victims, bypass verbal verification, and attempt fraudulent money transfers.
 
-**VoiceGuard** is an end-to-end security system combining deep learning acoustic artifact detection, audio quality gating, multi-window risk aggregation, and step-up challenge verification to mitigate voice cloning fraud without storing caller voiceprints.
+**VoiceGuard** evaluates acoustic synthetic-speech characteristics using a wav2vec2 architecture, screens signal quality prior to inference, aggregates risk across sliding windows, and presents step-up verification challenges before sensitive actions proceed.
 
 ```
  [Live Audio Stream / Audio File]
@@ -34,120 +34,156 @@ With the advent of commercial generative speech models and one-shot voice clonin
 
 ## 🛡️ Core Pillars & Architecture
 
-### 1. Zero-Persistence Privacy Architecture
-- **No Voice Biometrics**: VoiceGuard does not enroll, map, or store voice templates or biometric identifiers.
-- **Ephemeral Processing**: Uploaded audio is processed strictly within a transient request scope and immediately purged from disk.
-- **Audit-Logged Deletion**: An explicit `PRIVACY` log verifies file unlinking at the conclusion of every request.
+### 1. Ephemeral Audio Processing
+- VoiceGuard is designed for ephemeral audio processing. Temporary audio is processed for inference and cleaned up after processing. Structured cleanup events are logged without intentionally storing raw audio content.
+- **Privacy Qualification**: Operating-system memory, swap files, crash dumps, client buffers, infrastructure logs, and backups are outside the guarantees of this prototype.
+- **Compliance Qualification**: Designed around data-minimization and ephemeral-processing principles. This prototype has not undergone a formal legal or regulatory compliance assessment.
 
 ### 2. Audio Quality & Insufficient-Evidence Gating
-Traditional ML classifiers often produce confident but meaningless predictions when fed silence, white noise, or truncated buffers. VoiceGuard implements strict pre-inference signal validation in `audio_quality.py`:
+Traditional classifiers can produce arbitrary, high-confidence outputs on silent or truncated buffers. VoiceGuard enforces pre-inference signal validation in `audio_quality.py`:
 - **Silence & Low-Energy Detection**: RMS energy below threshold immediately returns `insufficient_evidence` with `no_speech` reason code.
-- **Clipping & Distortion Monitoring**: Rejects saturated waveforms that degrade acoustic features.
-- **Speech Voicing Check**: Confirms harmonic speech presence before running heavy transformers.
-- **Safety Guarantee**: Digital silence **never** yields a "bonafide" result and **never** clears an active security hold.
+- **Clipping & Distortion Monitoring**: Rejects heavily clipped waveforms that distort acoustic spectral representations.
+- **Speech Voicing Check**: Checks harmonic voiced frames before invoking neural feature extractors.
+- **Safety Invariants**: Digital silence **never** yields a "bonafide" result, **never** produces `allow_with_caution`, and **never** clears an active security hold.
+- **State Transition**:
+  ```text
+  ACTION_HELD
+      → silence/backend failure
+      → INSUFFICIENT_EVIDENCE
+      → sensitive action remains held
+  ```
 
-### 3. Client-Side Risk Aggregator & Fraud Protection
-- **No Single-Spike False Triggers**: A single anomaly or audio glitch cannot freeze a high-value transaction.
-- **Persistent Confirmation**: Requires $N$ consecutive high-risk sliding windows (default $N=2$) before elevating to `ACTION_HELD`.
-- **Step-Up Verification**: Rather than abrupt call termination, VoiceGuard triggers secondary out-of-band verification (SMS OTP, security questions, in-app challenge).
-- **Hysteresis Cooldown**: Restoring trust requires sustained clean windows ($M=3$), preventing attack oscillations.
+### 3. Client-Side Risk Aggregation & Step-Up Verification
+- **Isolated Spikes**: Exponential Moving Average smoothing reduces the impact of isolated score spikes; persistent high evidence is required before an action hold. (Does not imply that smoothing eliminates all false positives.)
+- **Persistent Confirmation**: A single high-risk window produces `VERIFICATION_REQUIRED`. Two consecutive configured high-risk windows produce `ACTION_HELD`.
+- **Step-Up Verification**: VoiceGuard presents simulated step-up verification options, such as confirming through the official app, calling a saved number, or contacting a trusted person. No real financial or telephony service is invoked.
+- **Hysteresis Cooldown**: Restoring low risk requires three consecutive clean windows.
+- **Simulated Transaction Disclaimer**: Demo mode — no real financial transaction is executed.
 
-### 4. Enterprise Security Defaults
-- **Scoped TLS Bypass**: Flutter bypasses self-signed certificates **only** in local demo mode (`kDemoMode`), guarded by compile-time assertions for release builds.
-- **DoS Safeguards**: Enforces strict upload limits (10 MB maximum) via streaming chunk verification, concurrency limits via async semaphores, and rate-limiting per client IP.
-- **Audited Secrets**: `.gitignore` strictly blocks all `.pem`, `.crt`, and `.key` artifacts.
+### 4. Security & Hardened Defaults
+- **Scoped TLS Exception**: Removed the global `HttpOverrides` bypass. Restricted the development-only self-signed certificate exception to the `VoiceGuardApiClient`, scoped to the configured target host and enabled only when `kDemoMode && !kReleaseMode`. Secure mode is the default (`kDemoMode` defaults to `false`). Release builds cannot enable the demo bypass.
+- **Certificate-Key Hygiene**: Removed `cert.pem` and `key.pem` from Git tracking on the hardening branch and added certificate/key patterns to `.gitignore`. Because these files were previously committed, the old private key must be treated as compromised. Historical removal was not automatically performed. Public deployment requires new trusted certificate/key material.
+- **DoS Safeguards**: Enforces strict upload limits (10 MB ceiling) via streaming chunk verification, concurrency limits via async semaphores and thread pools, and rate-limiting per client IP. The in-memory rate limiter is suitable for a single-process prototype only and is not sufficient for distributed production deployment.
 
 ---
 
-## 📊 Model Evaluation & Honest Technical Disclosure
+## 📊 Model Identity & Evaluation Disclosure
 
-VoiceGuard utilizes the `garystafford/wav2vec2-deepfake-voice-detector` pre-trained architecture.
+### Model Identification:
+```text
+Model source: garystafford/wav2vec2-deepfake-voice-detector
+Application model version: voiceguard-v1
+Exact upstream model revision: c66306024a7ede0be291e9c4558b37634782dc4e
+```
+
+### Evaluation Scope:
+The evaluation script uses the same model and preprocessing path configured for the live backend.
 
 > [!IMPORTANT]
-> **Evaluation Status**:  
-> The committed threshold report (`threshold_report.txt`) records a 100% false-positive rate at the reviewed threshold (0.40). A complete threshold sweep must be regenerated before making any claim about all thresholds.  
-> The available evaluation artifact shows substantial score overlap between bona-fide and spoof samples, indicating poor class separation under this evaluation.
+> **Evaluation Scope & Exact Scientific Statement**:  
+> Evaluated a 250-clip subset of the ASVspoof 2019 LA evaluation set: 50 bona-fide and 200 spoof samples. This subset result must not be interpreted as full-dataset performance or real-world call performance.  
+> On the evaluated subset of 50 bona-fide and 200 spoof clips, using the production model and threshold 0.30, all 50 bona-fide samples were classified above the spoof threshold, producing an observed FPR of 100% on this subset. The committed threshold report records a 100% false-positive rate at the reviewed threshold. A complete threshold sweep is required before making any claim about all thresholds.  
+> The score overlap is consistent with poor class separation under this evaluation, although the exact cause requires further investigation.
 
-### Responsible Claims Guidance
-- **What VoiceGuard Does**: Measures acoustic deepfake characteristics and triggers step-up verification when synthetic speech indicators are detected.
-- **What VoiceGuard Does Not Claim**: Does not verify caller identity, does not claim calibrated probability distributions, and does not claim flawless accuracy across out-of-domain telephony or Indian regional languages without domain fine-tuning.
+### Raw Score Distribution on Evaluated Subset:
+| Class | N | Min | p25 | Median | p75 | Max | Mean |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **bonafide** | 50 | **0.8107** | 0.8699 | **0.8976** | 0.9877 | **0.9952** | **0.9080** |
+| **spoof** | 200 | **0.0316** | 0.3756 | **0.8620** | 0.8932 | **0.9953** | **0.7050** |
 
-For comprehensive analysis, see [`docs/MODEL_EVALUATION.md`](file:///c:/Users/akina/sih2026/docs/MODEL_EVALUATION.md) and [`docs/KNOWN_LIMITATIONS.md`](file:///c:/Users/akina/sih2026/docs/KNOWN_LIMITATIONS.md).
+For comprehensive technical discussion, see `docs/MODEL_EVALUATION.md` and `docs/KNOWN_LIMITATIONS.md`.
 
 ---
 
 ## 🚀 Quick Start Guide
 
-### Prerequisites
-- Python 3.10+
-- Flutter 3.x with Dart 3.x
-- Git
+### Setup Commands:
 
-### 1. Install Dependencies
 ```bash
-# Python Backend Dependencies
+# 1. Create and activate virtual environment
+python -m venv .venv
+
+# Windows (PowerShell):
+.venv\Scripts\activate
+
+# Linux/macOS:
+source .venv/bin/activate
+
+# 2. Install dependencies
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
-# Flutter Client Dependencies
-flutter pub get
-```
+# 3. Verify configuration
+python -c "from voiceguard_config import get_config; print(get_config())"
 
-### 2. Start the Backend Server
-```bash
+# 4. Start backend server
 python backend.py
-```
-*The server automatically generates a self-signed TLS cert if needed and binds to `https://0.0.0.0:8443`.*  
-*(For development without HTTPS: `VOICEGUARD_DEV_MODE=1 python backend.py` on port `8000`).*
 
-Verify that the backend is ready:
-```bash
+# 5. Check local readiness probe (in separate terminal)
 curl -k https://localhost:8443/ready
+
+# 6. Run automated test suites
+pytest tests/ -v
+flutter test
+dart analyze
+
+# 7. Launch Flutter application in demo mode
+flutter run -d windows --dart-define=DEMO_MODE=true
 ```
 
-### 3. Launch the Flutter Application
-```bash
-# Run on Windows desktop
-flutter run -d windows
-
-# Or run in Chrome / Web
-flutter run -d chrome
-```
+### Operational Notes:
+- **Self-Signed Certificates**: Generated dynamically by `generate_cert.py` for local loopback testing if absent. Local self-signed certificates are for development-only testing. Public deployment requires new trusted certificate/key material.
+- **Model Download**: Model weights (~360 MB) download automatically on first run to the local Hugging Face cache.
+- **Readiness Handling (HTTP 503)**: If `GET /ready` returns HTTP 503 or `{"status": "not_ready"}`, model weights are still loading into memory; wait 15–30 seconds.
+- **Security Scope**: `curl -k` is used only for local self-signed testing; public deployment must not use `curl -k`. The backend remains in secure mode. Flutter demo mode is enabled only to permit local self-signed certificate testing. This is not a public-deployment configuration.
 
 ---
 
 ## 🧪 Verification & Test Suite
 
-The project includes a comprehensive 54-test automated Python test suite and zero-warning Flutter static analysis:
+54 automated tests passed in the available test suite. These tests validate implementation behavior, API contracts, audio-quality gates, backend behavior, security configuration, and temporal risk aggregation. They do not establish real-world voice-deepfake detection accuracy.
 
 ```bash
-# Run all unit and integration tests
-python -m pytest tests/ -v
-
-# Run Flutter / Dart static analysis
-dart analyze
+pytest tests/ -v --cov=. --cov-report=term-missing
 ```
 
-### Test Coverage Highlights:
-- `tests/test_backend.py`: Endpoints (`/health`, `/ready`, `/predict`, `/live/analyze`), rate limiting, upload limits, request tracing, mock inference.
-- `tests/test_audio_quality.py`: Digital silence, clipping, SNR, duration gates, `insufficient_evidence` behavior.
-- `tests/test_risk_aggregator.py`: Persistence windows, cooldown recovery, silence resilience, backend error states.
-- `tests/test_api_schema.py`: Canonical Pydantic schema validation, config synchronization, Flutter cross-compatibility.
-- `tests/test_security_config.py`: Secure defaults, demo mode guards, CORS restrictions.
+```text
+Overall repository coverage: 39%
+```
+Security-critical modules have targeted high coverage (`audio_quality.py`: 95%, `voiceguard_config.py`: 90%, `risk_aggregator.py`: 82%, `backend.py`: 79%), while overall repository coverage is lower because the report includes broader application and supporting code.
+
+Flutter and Dart static analysis completed without reported diagnostics in the recorded environment (`dart analyze` and `flutter analyze` reported 0 issues).
+
+Local prototype execution passed: backend readiness, API communication, Flutter integration, and mock transaction flow were verified. Native cellular call interception, real telephony integration, UPI integration, bank integration, and real transaction blocking were not tested and are outside the prototype scope.
+
+---
+
+## 🏷️ Controlled-Demo Readiness Rating
+
+```text
+Controlled prototype demonstration readiness: 8/10
+ML production readiness: 3/10
+Real financial and native telephony deployment: not ready
+```
+
+The prototype is suitable for a controlled SIH demonstration after the claims and documentation are corrected. It is not ready for real financial, identity, or telephony deployment.
 
 ---
 
 ## 📖 Documentation Index
 
-- [Architecture & Data Flow](file:///c:/Users/akina/sih2026/docs/ARCHITECTURE.md)
-- [Hackathon Demo Walkthrough & Judge Q&A](file:///c:/Users/akina/sih2026/docs/DEMO_GUIDE.md)
-- [API Reference Specification](file:///c:/Users/akina/sih2026/docs/API_REFERENCE.md)
-- [Model Evaluation & Claims](file:///c:/Users/akina/sih2026/docs/MODEL_EVALUATION.md)
-- [Known Limitations & Roadmap](file:///c:/Users/akina/sih2026/docs/KNOWN_LIMITATIONS.md)
-- [Security Remediation Audit](file:///c:/Users/akina/sih2026/docs/SECURITY_REMEDIATION.md)
-- [Implementation Audit Trail](file:///c:/Users/akina/sih2026/docs/IMPLEMENTATION_AUDIT.md)
+- [Hardening Walkthrough & Audit Report](docs/HARDENING_WALKTHROUGH.md)
+- [Architecture & Data Flow](docs/ARCHITECTURE.md)
+- [Hackathon Demo Guide & Judge Script](docs/DEMO_GUIDE.md)
+- [API Reference Specification](docs/API_REFERENCE.md)
+- [Model Evaluation & Findings](docs/MODEL_EVALUATION.md)
+- [Known Limitations](docs/KNOWN_LIMITATIONS.md)
+- [Security Remediation Audit](docs/SECURITY_REMEDIATION.md)
+- [Implementation Audit Trail](docs/IMPLEMENTATION_AUDIT.md)
+- [Threat Model](docs/THREAT_MODEL.md)
+- [Data Flow & Privacy](docs/DATA_FLOW_AND_PRIVACY.md)
 
 ---
 
-## ⚖️ License & Ethical Usage
+## ⚖️ Ethical Usage Notice
 This software prototype is built for educational, defensive, and fraud-mitigation research in accordance with Smart India Hackathon guidelines.
