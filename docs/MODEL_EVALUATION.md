@@ -94,3 +94,38 @@ If the dataset is absent, the script outputs:
 NOT AVAILABLE — dataset was not present at the expected path.
 ```
 No fabricated metrics were identified in the reviewed evaluation artifacts. The reported metrics are traceable to the recorded evaluation results and available raw per-clip outputs.
+
+---
+
+## 5. Controlled Model-Backend Experiment (Wav2Vec2 vs. WavLM-base + MLP)
+
+A controlled model-backend experiment was conducted to evaluate whether the fine-tuned WavLM-base + MLP classifier from the research pipeline (`predict.py`) could address the baseline Wav2Vec2 limitations for live serving.
+
+### 5.1 Benchmark Comparison Summary (250-clip eval split)
+
+| Metric | Wav2Vec2 (Baseline) | WavLM + MLP (Candidate) | Absolute Delta |
+|---|---|---|---|
+| **Model Backend ID** | `wav2vec2` | `wavlm_mlp` | — |
+| **Score Type** | `uncalibrated_softmax_score` | `uncalibrated_sigmoid_score` | — |
+| **FPR at 0.30 (Bona-fide)** | **100.0%** (50/50 FP) | **72.0%** (36/50 FP) | **-28.0%** |
+| **FNR at 0.30 (Spoof)** | **22.5%** (45/200 FN) | **18.0%** (36/200 FN) | **-4.5%** |
+| **Accuracy at 0.30** | 62.0% | 71.2% | +9.2% |
+| **Balanced Accuracy** | 38.8% | 55.0% | +16.2% |
+| **F1 Score** | 0.7654 | 0.8200 | +0.0546 |
+| **ROC-AUC** | 0.3087 (Inverted) | 0.4879 (Near-chance) | +0.1792 |
+| **PR-AUC** | 0.7349 | 0.7903 | +0.0554 |
+| **Equal Error Rate (EER)** | 61.50% | 52.50% | -9.00% |
+| **Mean Inference Latency** | 1044.24 ms | 473.76 ms | **-570.48 ms (55% faster)** |
+| **P95 Inference Latency** | 1787.56 ms | 836.00 ms | **-951.56 ms** |
+
+### 5.2 Key Findings & Acceptance Outcome
+
+1. **Latency and Throughput**: WavLM-base + MLP is ~55% faster on CPU (473.8 ms vs 1044.2 ms mean latency), well within real-time streaming constraints.
+2. **False Positive Reduction**: WavLM reduced the false positive rate on bona-fide speech from 100% to 72% at threshold 0.30. However, a 72% FPR remains unacceptably high for production serving.
+3. **Score Saturation & Near-Chance Discrimination**: WavLM outputs saturate heavily near 1.0 (median bona-fide and spoof scores are both $\approx 1.0$). ROC-AUC is 0.4879 (near-chance discrimination), consistent with the checkpoint's internal recorded training EER of 53.5%.
+4. **Production Selection**: In adherence to the pre-established acceptance gates, `active_model: wav2vec2` remains the production default. The WavLM backend is preserved in `voiceguard/model_backends/wavlm_mlp_backend.py` as an available alternative that can be selected via configuration.
+
+For complete artifact hashes, raw distributions, and gate evaluation, refer to:
+- [Model Comparison Report](docs/MODEL_COMPARISON.md)
+- [Model-Backend Experiment Audit](docs/MODEL_EXPERIMENT_AUDIT.md)
+

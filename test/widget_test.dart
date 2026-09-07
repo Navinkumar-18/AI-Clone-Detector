@@ -8,23 +8,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sih2026/main.dart';
 
 void main() {
-  testWidgets('Home screen shows VoiceGuard title and both action buttons',
+  testWidgets('App launches directly into Live Call mode with Start Live Call button',
       (WidgetTester tester) async {
     await tester.pumpWidget(const VoiceGuardApp());
+    await tester.pump();
 
-    // App title
-    expect(find.text('VoiceGuard'), findsOneWidget);
+    // Live App title & Start Call button
+    expect(find.text('VoiceGuard Live'), findsOneWidget);
+    expect(find.text('START LIVE CALL'), findsOneWidget);
 
-    // App subtitle
-    expect(find.text('AI Voice Security System'), findsOneWidget);
-
-    // Primary action — Live Call
-    expect(find.text('LIVE CALL ANALYSIS'), findsOneWidget);
-
-    // Secondary action — Audio File
-    expect(find.text('ANALYZE AUDIO FILE'), findsOneWidget);
-
-    // Record option
-    expect(find.text('Record & Analyze'), findsOneWidget);
+    // File screening and settings actions in AppBar
+    expect(find.byTooltip('Screen Audio File'), findsOneWidget);
+    expect(find.byTooltip('Server Settings'), findsOneWidget);
   });
 }

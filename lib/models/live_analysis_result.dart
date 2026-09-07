@@ -69,8 +69,12 @@ class LiveAnalysisResult {
   final EvidenceResult evidence;
   final List<String> reasonCodes;
   final String modelVersion;
+  final String modelBackend;
+  final String scoreType;
   final String thresholdVersion;
+  final bool modelLoaded;      // fail-closed: default is false
   final String requestId;
+  final DateTime receivedAt;
 
   const LiveAnalysisResult({
     required this.decision,
@@ -85,9 +89,13 @@ class LiveAnalysisResult {
     this.evidence = const EvidenceResult(),
     this.reasonCodes = const [],
     this.modelVersion = '',
+    this.modelBackend = '',
+    this.scoreType = '',
     this.thresholdVersion = '',
+    this.modelLoaded = false,
     this.requestId = '',
-  });
+    DateTime? receivedAt,
+  }) : receivedAt = receivedAt ?? const _ConstDateTime();
 
   /// Parse from the canonical backend DetectionResponse JSON.
   ///
@@ -129,13 +137,18 @@ class LiveAnalysisResult {
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
       riskLevel: json['risk_level'] as String? ?? 'unknown',
       riskPercentage: (json['risk_percentage'] as num?)?.toDouble() ?? 0.0,
-      speechDetected: json['speech_detected'] as bool? ?? true,
+      speechDetected: json['speech_detected'] as bool? ?? false,
       audioQuality: aq,
       evidence: ev,
       reasonCodes: reasons,
       modelVersion: json['model_version'] as String? ?? '',
+      modelBackend: json['model_backend'] as String? ?? '',
+      scoreType: json['score_type'] as String? ?? '',
       thresholdVersion: json['threshold_version'] as String? ?? '',
+      // CAUTION 1: Never default model_loaded to true. If missing or malformed -> false.
+      modelLoaded: json['model_loaded'] as bool? ?? false,
       requestId: json['request_id'] as String? ?? '',
+      receivedAt: DateTime.now(),
     );
   }
 
@@ -152,4 +165,94 @@ class LiveAnalysisResult {
 
   /// Whether this result indicates insufficient evidence.
   bool get isInsufficientEvidence => decision == 'insufficient_evidence';
+
+  /// Blocking reason codes that immediately disqualify the result from green/low-risk.
+  static const Set<String> blockingReasonCodes = {
+    'no_speech',
+    'audio_quality_poor',
+    'backend_unavailable',
+    'model_unavailable',
+    'analysis_stale',
+    'capture_unavailable',
+    'empty_or_invalid_capture',
+    'elevated_spoof_score',
+    'persistent_high_spoof_evidence',
+    'persistent_high_spoof_score',
+    'action_remains_held',
+    'recovering_from_action_held',
+  };
+
+  /// Freshness check: returns true if result was received within [maxAgeSeconds].
+  bool isFresh([int maxAgeSeconds = 15]) =>
+      DateTime.now().difference(receivedAt).inSeconds < maxAgeSeconds;
+
+  /// FAIL-CLOSED GREEN-STATE RULE:
+  /// Green/LOW_RISK may be displayed ONLY when EVERY condition below is true:
+  ///   1. decision == 'low_risk'
+  ///   2. speechDetected == true
+  ///   3. audioQuality.status == 'acceptable'
+  ///   4. modelLoaded == true (fail-closed: never defaults to true)
+  ///   5. response is fresh (< 15 seconds)
+  ///   6. no blocking reason codes present
+  bool get canShowLowRisk =>
+      decision == 'low_risk' &&
+      speechDetected == true &&
+      audioQuality.status == 'acceptable' &&
+      modelLoaded == true &&
+      isFresh() &&
+      !reasonCodes.any(blockingReasonCodes.contains);
+}
+
+/// Compile-time constant fallback for receivedAt.
+class _ConstDateTime implements DateTime {
+  const _ConstDateTime();
+
+  @override
+  bool isAfter(DateTime other) => false;
+  @override
+  bool isBefore(DateTime other) => false;
+  @override
+  bool isAtSameMomentAs(DateTime other) => false;
+  @override
+  int compareTo(DateTime other) => 0;
+  @override
+  DateTime add(Duration duration) => this;
+  @override
+  DateTime subtract(Duration duration) => this;
+  @override
+  Duration difference(DateTime other) => const Duration(seconds: 99999);
+  @override
+  int get millisecondsSinceEpoch => 0;
+  @override
+  int get microsecondsSinceEpoch => 0;
+  @override
+  String get timeZoneName => 'UTC';
+  @override
+  Duration get timeZoneOffset => Duration.zero;
+  @override
+  int get year => 1970;
+  @override
+  int get month => 1;
+  @override
+  int get day => 1;
+  @override
+  int get hour => 0;
+  @override
+  int get minute => 0;
+  @override
+  int get second => 0;
+  @override
+  int get millisecond => 0;
+  @override
+  int get microsecond => 0;
+  @override
+  int get weekday => 4;
+  @override
+  bool get isUtc => true;
+  @override
+  DateTime toLocal() => this;
+  @override
+  DateTime toUtc() => this;
+  @override
+  String toIso8601String() => '1970-01-01T00:00:00.000Z';
 }

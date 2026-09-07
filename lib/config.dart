@@ -21,7 +21,7 @@ const String kEmulatorBackendUrl = 'https://10.0.2.2:8443';
 
 /// Default URL for a physical Android device on the same LAN.
 /// Update this if your PC's LAN IP changes.
-const String kPhysicalDeviceBackendUrl = 'https://192.168.137.45:8443';
+const String kPhysicalDeviceBackendUrl = 'https://10.175.183.121:8443';
 
 /// Default backend URL used as the initial fallback.
 /// Dynamically resolves to:
@@ -106,8 +106,14 @@ class BackendConfig {
   static String get baseUrl => _baseUrl;
 
   /// Load any previously-saved URL from SharedPreferences.
+  /// If BACKEND_URL was passed via --dart-define, it takes precedence.
   /// Must be called once before runApp().
   static Future<void> init() async {
+    const env = String.fromEnvironment('BACKEND_URL');
+    if (env.isNotEmpty) {
+      _baseUrl = env;
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString(_kBackendUrlKey);
     if (saved != null && saved.isNotEmpty) {
@@ -125,10 +131,14 @@ class BackendConfig {
     // Validate by calling /health
     try {
       final client = HttpClient();
-      // Scoped only to target host and only when demo mode is active
-      if (kDemoMode && !kReleaseMode) {
+      // Scoped only to target host in debug/non-release mode (or when demo mode is active)
+      if (!kReleaseMode || kDemoMode) {
         final targetHost = Uri.parse(normalized).host;
-        client.badCertificateCallback = (cert, host, port) => host == targetHost;
+        client.badCertificateCallback = (cert, host, port) {
+          final isLoopback = (host == '127.0.0.1' || host == 'localhost' || host == '10.0.2.2');
+          final isTargetLoopback = (targetHost == '127.0.0.1' || targetHost == 'localhost' || targetHost == '10.0.2.2');
+          return host == targetHost || (isLoopback && isTargetLoopback);
+        };
       }
       final request = await client.getUrl(Uri.parse('$normalized/health'));
       final response = await request.close().timeout(const Duration(seconds: 5));

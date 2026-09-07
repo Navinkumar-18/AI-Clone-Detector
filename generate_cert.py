@@ -46,6 +46,24 @@ def generate_self_signed_cert(
     ])
 
     now = datetime.datetime.now(datetime.timezone.utc)
+    san_list = [
+        x509.DNSName("localhost"),
+        x509.DNSName("*.ngrok-free.app"),
+        x509.IPAddress(ipaddress.IPv4Address("127.0.0.1")),
+        x509.IPAddress(ipaddress.IPv4Address("0.0.0.0")),
+    ]
+    try:
+        import socket
+        for ip in socket.gethostbyname_ex(socket.gethostname())[2]:
+            try:
+                addr = ipaddress.ip_address(ip)
+                if addr not in (ipaddress.IPv4Address("127.0.0.1"), ipaddress.IPv4Address("0.0.0.0")):
+                    san_list.append(x509.IPAddress(addr))
+            except Exception:
+                pass
+    except Exception:
+        pass
+
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
@@ -55,12 +73,7 @@ def generate_self_signed_cert(
         .not_valid_before(now)
         .not_valid_after(now + datetime.timedelta(days=days))
         .add_extension(
-            x509.SubjectAlternativeName([
-                x509.DNSName("localhost"),
-                x509.DNSName("*.ngrok-free.app"),
-                x509.IPAddress(ipaddress.IPv4Address("127.0.0.1")),
-                x509.IPAddress(ipaddress.IPv4Address("0.0.0.0")),
-            ]),
+            x509.SubjectAlternativeName(san_list),
             critical=False,
         )
         .sign(key, hashes.SHA256())

@@ -1,0 +1,28 @@
+{
+  "baseline_commit": "3c228da111dc81d5ee8f210f84b098e1dbfe3d58",
+  "baseline_branch": "voiceguard/sih2026-hardening",
+  "experiment_branch": "experiment/wavlm-mlp-backend",
+  "python_version": "3.11.9",
+  "pytorch_version": "2.10.0+cpu",
+  "transformers_version": "5.2.0",
+  "librosa_version": "0.11.0",
+  "soundfile_version": "0.14.0",
+  "numpy_version": "2.4.2",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "device": "cpu",
+  "models": {
+    "wav2vec2": {
+      "model_id": "garystafford/wav2vec2-deepfake-voice-detector",
+      "hf_commit": "c66306024a7ede0be291e9c4558b37634782dc4e",
+      "score_type": "uncalibrated_softmax_score"
+    },
+    "wavlm_mlp": {
+      "backbone_id": "microsoft/wavlm-base",
+      "hf_commit": "efa81aae7ff777e464159e0f877d54eac5b84f81",
+      "checkpoint_path": "models/best_mlp_wavlm_base.pt",
+      "checkpoint_sha256": "f7e518d57e8f96ec6c5c34b8ebb2ecd78c91ba67e7c260287a367aeb53816d2f",
+      "checkpoint_size_bytes": 397077,
+      "score_type": "uncalibrated_sigmoid_score"
+    }
+  }
+}

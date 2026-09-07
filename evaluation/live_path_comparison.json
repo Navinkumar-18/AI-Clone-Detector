@@ -1,0 +1,151 @@
+{
+  "audio_source": "test_clip.wav",
+  "sample_rate": 16000,
+  "duration_seconds": 2.0,
+  "active_backend": "wavlm_mlp",
+  "paths": {
+    "path_a_predict": {
+      "status_code": 200,
+      "response": {
+        "decision": "verification_required",
+        "action": "verify",
+        "label": "spoof",
+        "spoof_score": 0.940928,
+        "confidence": 0.940928,
+        "risk_level": "high",
+        "risk_percentage": 94.1,
+        "speech_detected": true,
+        "audio_quality": {
+          "status": "acceptable",
+          "duration_seconds": 2.0,
+          "rms": 0.282842,
+          "snr_db": 0.0,
+          "clipping_ratio": 0.0,
+          "voiced_ratio": 1.0
+        },
+        "evidence": {
+          "window_count": 0,
+          "high_risk_window_count": 0,
+          "analysis_age_ms": 0
+        },
+        "reason_codes": [
+          "elevated_spoof_score"
+        ],
+        "model_version": "research-mlp-v1",
+        "model_backend": "wavlm_mlp",
+        "score_type": "uncalibrated_sigmoid_score",
+        "threshold_version": "wavlm-v1",
+        "model_loaded": true,
+        "request_id": "8eaaed6b-98d8-4728-9e1c-983acde06fe5"
+      }
+    },
+    "path_b_live_chunks": {
+      "total_chunks": 1,
+      "chunks": [
+        {
+          "chunk_index": 0,
+          "window_start_sec": 0.0,
+          "status_code": 200,
+          "live_response": {
+            "decision": "verification_required",
+            "action": "verify",
+            "label": "spoof",
+            "spoof_score": 0.944219,
+            "confidence": 0.944219,
+            "risk_level": "high",
+            "risk_percentage": 94.4,
+            "speech_detected": true,
+            "audio_quality": {
+              "status": "acceptable",
+              "duration_seconds": 2.0,
+              "rms": 0.282815,
+              "snr_db": 0.0,
+              "clipping_ratio": 0.0,
+              "voiced_ratio": 1.0
+            },
+            "evidence": {
+              "window_count": 0,
+              "high_risk_window_count": 0,
+              "analysis_age_ms": 0
+            },
+            "reason_codes": [
+              "elevated_spoof_score"
+            ],
+            "model_version": "research-mlp-v1",
+            "model_backend": "wavlm_mlp",
+            "score_type": "uncalibrated_sigmoid_score",
+            "threshold_version": "wavlm-v1",
+            "model_loaded": true,
+            "request_id": "a4680e97-db1a-4d33-a9f0-873da7b91f04"
+          },
+          "aggregator_state": {
+            "decision": "verification_required",
+            "action": "verify",
+            "spoof_score": 0.944219,
+            "ema_score": 0.944219,
+            "consecutive_high_windows": 1,
+            "reason_codes": [
+              "elevated_spoof_score"
+            ]
+          }
+        }
+      ],
+      "final_aggregator_decision": "verification_required",
+      "final_aggregator_action": "verify"
+    },
+    "path_c_speakerphone_live": {
+      "total_chunks": 1,
+      "chunks": [
+        {
+          "chunk_index": 0,
+          "window_start_sec": 0.0,
+          "status_code": 200,
+          "live_response": {
+            "decision": "verification_required",
+            "action": "verify",
+            "label": "spoof",
+            "spoof_score": 0.996285,
+            "confidence": 0.996285,
+            "risk_level": "high",
+            "risk_percentage": 99.6,
+            "speech_detected": true,
+            "audio_quality": {
+              "status": "acceptable",
+              "duration_seconds": 2.0,
+              "rms": 0.262884,
+              "snr_db": 0.0,
+              "clipping_ratio": 0.0,
+              "voiced_ratio": 1.0
+            },
+            "evidence": {
+              "window_count": 0,
+              "high_risk_window_count": 0,
+              "analysis_age_ms": 0
+            },
+            "reason_codes": [
+              "elevated_spoof_score"
+            ],
+            "model_version": "research-mlp-v1",
+            "model_backend": "wavlm_mlp",
+            "score_type": "uncalibrated_sigmoid_score",
+            "threshold_version": "wavlm-v1",
+            "model_loaded": true,
+            "request_id": "918faa1a-baa9-4131-a47f-9220b7ceba49"
+          },
+          "aggregator_state": {
+            "decision": "verification_required",
+            "action": "verify",
+            "spoof_score": 0.996285,
+            "ema_score": 0.996285,
+            "consecutive_high_windows": 1,
+            "reason_codes": [
+              "elevated_spoof_score"
+            ]
+          }
+        }
+      ],
+      "final_aggregator_decision": "verification_required",
+      "final_aggregator_action": "verify"
+    }
+  }
+}

@@ -9,7 +9,7 @@
 
 With the proliferation of commercial generative speech synthesis and one-shot voice cloning, malicious actors can clone voices to deceive victims, bypass verbal verification, and attempt fraudulent money transfers.
 
-**VoiceGuard** evaluates acoustic synthetic-speech characteristics using a wav2vec2 architecture, screens signal quality prior to inference, aggregates risk across sliding windows, and presents step-up verification challenges before sensitive actions proceed.
+**VoiceGuard** evaluates acoustic synthetic-speech characteristics using a modular model backend (defaulting to Wav2Vec2, with an available candidate WavLM-base + MLP backend), screens signal quality prior to inference, aggregates risk across sliding windows, and presents step-up verification challenges before sensitive actions proceed.
 
 ```
  [Live Audio Stream / Audio File]
@@ -18,10 +18,9 @@ With the proliferation of commercial generative speech synthesis and one-shot vo
    [Audio Quality Pre-Filter] ────► Digital silence / low SNR ──► [INSUFFICIENT_EVIDENCE]
                │ (Acceptable Quality)
                ▼
-   [wav2vec2 Feature Extractor] ──► Ephemeral inference off event loop
-               │
-               ▼
-    [Acoustic Deepfake Model]  ──► Softmax Spoof Score & Confidence
+ [Active Model Backend (Factory)] ──► Ephemeral inference off event loop
+   ├── Wav2Vec2Backend (default)   ──► Softmax Spoof Score (uncalibrated_softmax_score)
+   └── WavLMMLPBackend (candidate) ──► Sigmoid Spoof Score (uncalibrated_sigmoid_score)
                │
                ▼
   [Client-Side Risk Aggregator] ──► Multi-window temporal persistence & cooldown
@@ -65,6 +64,19 @@ Traditional classifiers can produce arbitrary, high-confidence outputs on silent
 - **Certificate-Key Hygiene**: Removed `cert.pem` and `key.pem` from Git tracking on the hardening branch and added certificate/key patterns to `.gitignore`. Because these files were previously committed, the old private key must be treated as compromised. Historical removal was not automatically performed. Public deployment requires new trusted certificate/key material.
 - **DoS Safeguards**: Enforces strict upload limits (10 MB ceiling) via streaming chunk verification, concurrency limits via async semaphores and thread pools, and rate-limiting per client IP. The in-memory rate limiter is suitable for a single-process prototype only and is not sufficient for distributed production deployment.
 
+### 5. Pluggable Model-Backend Abstraction
+- **Abstract Backend Layer (`voiceguard.model_backends`)**: Decouples model inference from server routes and client protocols.
+- **Fail-Closed Guarantees**: Model load failures return `HTTP 503 Service Unavailable` with `status: "not_ready"` on `/ready` and `/predict`.
+- **Config-Driven Selection**: Backend selection is governed by `active_model: wav2vec2` in `config/model_config.yaml`.
+
+### 6. Live Acoustic Capture & Fail-Closed UI
+- Continuous microphone monitoring operates on validated 16 kHz 16-bit mono PCM buffers (32,000 bytes/sec).
+- Digital silence (RMS < 0.003), weak capture, network timeouts, or backend errors fail closed immediately to `insufficient_evidence` or `backend_unavailable`.
+- Green (`LOW_RISK`) is strictly blocked unless fresh valid speech analysis explicitly returns `low_risk` from a loaded model, with zero blocking reason codes.
+- Collapsible dev diagnostics panel in `LiveCallScreen` displays stream format, chunk RMS, model readiness, and gate states in real-time.
+- Documented in `docs/LIVE_CAPTURE_DEBUG.md` and `docs/LIVE_PATH_COMPARISON.md`.
+
+
 ---
 
 ## 📊 Model Identity & Evaluation Disclosure
@@ -91,7 +103,7 @@ The evaluation script uses the same model and preprocessing path configured for 
 | **bonafide** | 50 | **0.8107** | 0.8699 | **0.8976** | 0.9877 | **0.9952** | **0.9080** |
 | **spoof** | 200 | **0.0316** | 0.3756 | **0.8620** | 0.8932 | **0.9953** | **0.7050** |
 
-For comprehensive technical discussion, see `docs/MODEL_EVALUATION.md` and `docs/KNOWN_LIMITATIONS.md`.
+For comprehensive technical discussion, see `docs/MODEL_EVALUATION.md`, `docs/MODEL_COMPARISON.md`, `docs/MODEL_EXPERIMENT_AUDIT.md`, and `docs/KNOWN_LIMITATIONS.md`.
 
 ---
 
@@ -123,7 +135,8 @@ python backend.py
 curl -k https://localhost:8443/ready
 
 # 6. Run automated test suites
-pytest tests/ -v
+pytest tests/ -v -m "not integration"
+pytest tests/ -v -m "integration"
 flutter test
 dart analyze
 
@@ -141,14 +154,16 @@ flutter run -d windows --dart-define=DEMO_MODE=true
 
 ## 🧪 Verification & Test Suite
 
-54 automated tests passed in the available test suite. These tests validate implementation behavior, API contracts, audio-quality gates, backend behavior, security configuration, and temporal risk aggregation. They do not establish real-world voice-deepfake detection accuracy.
+66 automated unit tests and 2 integration tests passed in the available test suite (68 tests total). These tests validate implementation behavior, API contracts, audio-quality gates, model backend abstractions, numerical parity, backend behavior, security configuration, and temporal risk aggregation. They do not establish real-world voice-deepfake detection accuracy.
 
 ```bash
-pytest tests/ -v --cov=. --cov-report=term-missing
+pytest tests/ -v -m "not integration"
+pytest tests/ -v -m "integration"
 ```
 
 ```text
-Overall repository coverage: 39%
+Unit test suite: 66 passed
+Integration test suite: 2 passed (numerical parity < 1e-4 verified)
 ```
 Security-critical modules have targeted high coverage (`audio_quality.py`: 95%, `voiceguard_config.py`: 90%, `risk_aggregator.py`: 82%, `backend.py`: 79%), while overall repository coverage is lower because the report includes broader application and supporting code.
 
@@ -172,16 +187,21 @@ The prototype is suitable for a controlled SIH demonstration after the claims an
 
 ## 📖 Documentation Index
 
+- [Live Capture Debug & Fail-Closed Architecture](docs/LIVE_CAPTURE_DEBUG.md)
+- [Live Path Comparison (Digital vs Live vs Speakerphone)](docs/LIVE_PATH_COMPARISON.md)
 - [Hardening Walkthrough & Audit Report](docs/HARDENING_WALKTHROUGH.md)
 - [Architecture & Data Flow](docs/ARCHITECTURE.md)
+- [Model Evaluation & Findings](docs/MODEL_EVALUATION.md)
+- [Model Comparison Report](docs/MODEL_COMPARISON.md)
+- [Model-Backend Experiment Audit](docs/MODEL_EXPERIMENT_AUDIT.md)
+- [Known Limitations](docs/KNOWN_LIMITATIONS.md)
 - [Hackathon Demo Guide & Judge Script](docs/DEMO_GUIDE.md)
 - [API Reference Specification](docs/API_REFERENCE.md)
-- [Model Evaluation & Findings](docs/MODEL_EVALUATION.md)
-- [Known Limitations](docs/KNOWN_LIMITATIONS.md)
 - [Security Remediation Audit](docs/SECURITY_REMEDIATION.md)
 - [Implementation Audit Trail](docs/IMPLEMENTATION_AUDIT.md)
 - [Threat Model](docs/THREAT_MODEL.md)
 - [Data Flow & Privacy](docs/DATA_FLOW_AND_PRIVACY.md)
+
 
 ---
 

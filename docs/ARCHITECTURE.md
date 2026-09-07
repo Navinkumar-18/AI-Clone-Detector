@@ -59,12 +59,14 @@
 │  │ Non-Blocking Inference Worker Pool:                                   │  │
 │  │ - Bounded ThreadPoolExecutor (max_workers=4)                          │  │
 │  │ - Guarded by asyncio.Semaphore(4) concurrency ceiling                 │  │
-│  │ - Model: garystafford/wav2vec2-deepfake-voice-detector                │  │
-│  │ - Softmax scoring: prob_fake and prob_real                            │  │
+│  │ - Model Backend Factory (voiceguard.model_backends):                 │  │
+│  │   * Wav2Vec2Backend (default): uncalibrated_softmax_score             │  │
+│  │   * WavLMMLPBackend (candidate): uncalibrated_sigmoid_score           │  │
 │  └───────────────────────────────────┬───────────────────────────────────┘  │
 │                                      │                                      │
 │  ┌───────────────────────────────────▼───────────────────────────────────┐  │
 │  │ Response Dispatch: Canonical DetectionResponse (Pydantic)             │  │
+│  │ Fields: spoof_score, confidence, model_backend, score_type            │  │
 │  │ Decisions: low_risk | verification_required | action_held             │  │
 │  │            | insufficient_evidence                                    │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
@@ -91,6 +93,20 @@ To prevent synchronous PyTorch calculations from blocking the asynchronous FastA
    - Bounded concurrency limit: 4 parallel workers.
 3. **Event Loop Responsiveness**:
    - Liveness (`GET /health`) and readiness (`GET /ready`) probes execute immediately without waiting behind queued inference tasks.
+
+### 2.1 Pluggable Model-Backend Abstraction Layer
+
+VoiceGuard decouples the HTTP serving lifecycle and audio quality gates from the underlying neural architecture via `voiceguard/model_backends/`:
+
+- **`ModelBackend` Base Interface** (`voiceguard/model_backends/base.py`):
+  Defines standard lifecycle methods (`load()`, `predict(audio, sample_rate) -> ModelPrediction`) and attributes (`backend_name`, `score_type`).
+- **`Wav2Vec2Backend`** (`voiceguard/model_backends/wav2vec2_backend.py`):
+  Production default. Wraps Hugging Face `AutoModelForAudioClassification` (`garystafford/wav2vec2-deepfake-voice-detector` at pinned revision `c66306024a7ede0be291e9c4558b37634782dc4e`). Emits `score_type: "uncalibrated_softmax_score"`.
+- **`WavLMMLPBackend`** (`voiceguard/model_backends/wavlm_mlp_backend.py`):
+  Offline research candidate. Extracts frozen 768-dimensional representations via `microsoft/wavlm-base` (pinned revision `efa81aae7ff777e464159e0f877d54eac5b84f81`) and scores them with a 2-layer MLP head (`models/best_mlp_wavlm_base.pt`). Emits `score_type: "uncalibrated_sigmoid_score"`.
+- **Backend Factory** (`voiceguard/model_backends/__init__.py`):
+  Dynamically instantiates the configured backend via `create_backend(backend_name, ...)`. If a backend fails to load, raises `ModelLoadError`, ensuring the server fails closed without implicit fallback.
+
 
 ---
 

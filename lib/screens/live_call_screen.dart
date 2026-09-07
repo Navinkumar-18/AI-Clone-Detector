@@ -24,6 +24,7 @@ import 'package:record/record.dart';
 
 import '../api_client.dart';
 import '../config.dart';
+import '../main.dart';
 import '../models/live_analysis_result.dart';
 import '../widgets/risk_indicator.dart';
 import '../widgets/transaction_card.dart';
@@ -80,6 +81,12 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   bool _backendConnected = false;
   bool _isAnalyzing = false; // prevents concurrent analysis requests
 
+  // -- audio capture format validation (Caution 2) --
+  static const int _captureSampleRate = kLiveSampleRate;
+  static const int _captureChannels = 1;
+  static const int _captureBitsPerSample = 16;
+  static const int _bytesPerSample = (_captureBitsPerSample ~/ 8) * _captureChannels;
+
   // -- risk aggregation --
   double _emaScore = 0.0;
   double _currentScore = 0.0;
@@ -91,12 +98,19 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   bool _persistenceTriggered = false;
   int _cooldownRemaining = 0;
   bool _wasActionHeld = false;
+  bool _canShowCurrentLowRisk = false;
+
+  // -- diagnostics & validation --
+  double _currentRms = 0.0;
+  bool _lastModelLoaded = false;
+  DateTime? _lastResultReceivedAt;
+  String _lastError = '';
 
   // -- history --
   final List<_RiskEntry> _riskHistory = [];
 
   // -- summary --
-  String _maxRisk = 'low';
+  String _maxRisk = 'unknown';
   int _highRiskWindows = 0;
 
   // -- audio level visualization --
@@ -176,6 +190,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     _pcmBuffer.clear();
     _riskHistory.clear();
     _emaScore = 0.0;
+    _currentScore = 0.0;
     _callLevelRisk = 'unknown';
     _callLevelAction = 'unavailable';
     _callLevelDecision = 'insufficient_evidence';
@@ -184,17 +199,22 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     _persistenceTriggered = false;
     _cooldownRemaining = 0;
     _wasActionHeld = false;
+    _canShowCurrentLowRisk = false;
+    _currentRms = 0.0;
+    _lastModelLoaded = false;
+    _lastResultReceivedAt = null;
+    _lastError = '';
     _callDuration = Duration.zero;
-    _maxRisk = 'low';
+    _maxRisk = 'unknown';
     _highRiskWindows = 0;
     _isAnalyzing = false;
 
-    // 4. Start PCM audio stream
+    // 4. Start PCM audio stream (Caution 2: validate sample rate, channels, encoding)
     try {
       const config = RecordConfig(
         encoder: AudioEncoder.pcm16bits,
-        sampleRate: kLiveSampleRate,
-        numChannels: 1,
+        sampleRate: _captureSampleRate,
+        numChannels: _captureChannels,
         noiseSuppress: false,
         echoCancel: false,
         autoGain: true,
@@ -283,9 +303,9 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   void _onAudioData(Uint8List data) {
     _pcmBuffer.addAll(data);
 
-    // Keep only the last kLiveChunkDurationSec * sampleRate * 2 bytes
-    // (16-bit PCM = 2 bytes per sample, mono)
-    final maxBytes = kLiveChunkDurationSec * kLiveSampleRate * 2;
+    // Keep only the rolling buffer window (Caution 2: computed from actual format)
+    final bytesPerSec = _captureSampleRate * _bytesPerSample;
+    final maxBytes = kLiveChunkDurationSec * bytesPerSec;
     if (_pcmBuffer.length > maxBytes * 2) {
       _pcmBuffer.removeRange(0, _pcmBuffer.length - maxBytes);
     }
@@ -325,34 +345,130 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     if (_isAnalyzing) return;
     if (_callState != _CallState.active) return;
 
-    // Need at least 1 second of audio (16000 samples * 2 bytes)
-    final minBytes = kLiveSampleRate * 2;
+    // Need at least 1 second of audio (Caution 2: computed using validated capture format)
+    final bytesPerSec = _captureSampleRate * _bytesPerSample;
+    final minBytes = bytesPerSec;
     if (_pcmBuffer.length < minBytes) return;
 
     _isAnalyzing = true;
 
     try {
-      // Take the last kLiveChunkDurationSec of buffer
-      final targetBytes = kLiveChunkDurationSec * kLiveSampleRate * 2;
-      final startIdx =
-          _pcmBuffer.length > targetBytes ? _pcmBuffer.length - targetBytes : 0;
-      final chunk = Uint8List.fromList(_pcmBuffer.sublist(startIdx));
+      // Ensure buffer size is aligned to sample boundaries
+      final alignedBufferLength =
+          _pcmBuffer.length - (_pcmBuffer.length % _bytesPerSample);
+      final targetBytes = kLiveChunkDurationSec * bytesPerSec;
+      final startIdx = alignedBufferLength > targetBytes
+          ? alignedBufferLength - targetBytes
+          : 0;
+      final chunk =
+          Uint8List.fromList(_pcmBuffer.sublist(startIdx, alignedBufferLength));
+
+      // Calculate chunk RMS (Caution 2: validate real sample data before sending)
+      double sumSq = 0;
+      int samples = 0;
+      for (int i = 0; i < chunk.length - 1; i += 2) {
+        int sample = chunk[i] | (chunk[i + 1] << 8);
+        if (sample >= 0x8000) sample -= 0x10000;
+        final norm = sample / 32768.0;
+        sumSq += norm * norm;
+        samples++;
+      }
+      final chunkRms = samples > 0 ? sqrt(sumSq / samples) : 0.0;
+      _currentRms = chunkRms;
+
+      // Digital silence / near-silence pre-check (RMS < 0.003)
+      if (chunkRms < 0.003) {
+        if (mounted) {
+          setState(() {
+            _canShowCurrentLowRisk = false;
+            if (_wasActionHeld || _callLevelAction == 'hold') {
+              _callLevelDecision = 'action_held';
+              _callLevelAction = 'hold';
+              _callLevelRisk = 'high';
+              _callLevelReasons = const ['no_speech', 'action_remains_held'];
+            } else {
+              _callLevelDecision = 'insufficient_evidence';
+              _callLevelAction = 'unavailable';
+              _callLevelRisk = 'unknown';
+              _callLevelReasons = const ['no_speech', 'audio_level_too_low'];
+            }
+          });
+        }
+        return;
+      }
 
       // Wrap PCM data as a WAV file
-      final wavBytes = _wrapPcmAsWav(chunk, kLiveSampleRate, 1, 16);
+      final wavBytes = _wrapPcmAsWav(
+        chunk,
+        _captureSampleRate,
+        _captureChannels,
+        _captureBitsPerSample,
+      );
 
       // Send to backend
       final result = await VoiceGuardApiClient.analyzeLiveChunk(wavBytes);
 
       if (!mounted || _callState != _CallState.active) return;
 
+      _lastModelLoaded = result.modelLoaded;
+      _lastResultReceivedAt = result.receivedAt;
+      _lastError = '';
       _updateRisk(result);
-    } on BackendUnreachableException {
-      if (mounted) setState(() => _backendConnected = false);
-    } on BackendErrorException {
-      // Log but continue — don't crash the call for a single failed chunk
-    } catch (_) {
-      // Ignore transient errors and continue
+    } on BackendUnreachableException catch (e) {
+      if (mounted) {
+        setState(() {
+          _backendConnected = false;
+          _canShowCurrentLowRisk = false;
+          _lastError = 'Backend unreachable: $e';
+          if (_wasActionHeld || _callLevelAction == 'hold') {
+            _callLevelDecision = 'action_held';
+            _callLevelAction = 'hold';
+            _callLevelRisk = 'high';
+            _callLevelReasons = const ['backend_unavailable', 'action_remains_held'];
+          } else {
+            _callLevelDecision = 'backend_unavailable';
+            _callLevelAction = 'unavailable';
+            _callLevelRisk = 'unknown';
+            _callLevelReasons = const ['backend_unavailable'];
+          }
+        });
+      }
+    } on BackendErrorException catch (e) {
+      if (mounted) {
+        setState(() {
+          _canShowCurrentLowRisk = false;
+          _lastError = 'Backend error: ${e.statusCode}';
+          if (_wasActionHeld || _callLevelAction == 'hold') {
+            _callLevelDecision = 'action_held';
+            _callLevelAction = 'hold';
+            _callLevelRisk = 'high';
+            _callLevelReasons = const ['backend_error', 'action_remains_held'];
+          } else {
+            _callLevelDecision = 'backend_unavailable';
+            _callLevelAction = 'unavailable';
+            _callLevelRisk = 'unknown';
+            _callLevelReasons = const ['backend_error'];
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _canShowCurrentLowRisk = false;
+          _lastError = 'Analysis error: $e';
+          if (_wasActionHeld || _callLevelAction == 'hold') {
+            _callLevelDecision = 'action_held';
+            _callLevelAction = 'hold';
+            _callLevelRisk = 'high';
+            _callLevelReasons = const ['analysis_failed', 'action_remains_held'];
+          } else {
+            _callLevelDecision = 'capture_unavailable';
+            _callLevelAction = 'unavailable';
+            _callLevelRisk = 'unknown';
+            _callLevelReasons = const ['analysis_failed'];
+          }
+        });
+      }
     } finally {
       _isAnalyzing = false;
     }
@@ -382,17 +498,17 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   void _updateRisk(LiveAnalysisResult result) {
     const alpha = 0.3;
     const highThreshold = 0.85;
-    const mediumThreshold = 0.40;
+    const mediumThreshold = 0.30;
     const cooldownWindows = 3;
 
-    // If chunk had no speech (silence / muted mic):
-    // Do not escalate risk or advance persistence threat counter.
+    // Fail closed if chunk had no speech (silence / muted mic):
     if (!result.speechDetected) {
       // Do NOT reset _consecutiveHighCount — preserve persistence state
       // Per security requirement: silence after ACTION_HELD stays held.
       setState(() {
+        _canShowCurrentLowRisk = false;
         if (_wasActionHeld || _callLevelAction == 'hold') {
-          _callLevelDecision = 'insufficient_evidence';
+          _callLevelDecision = 'action_held';
           _callLevelAction = 'hold';
           _callLevelRisk = 'high';
           _callLevelReasons = const ['no_speech', 'action_remains_held'];
@@ -442,6 +558,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     String action;
     String decision;
     List<String> reasons = [];
+    bool canShowLow = false;
 
     if (_persistenceTriggered) {
       risk = 'high';
@@ -450,27 +567,44 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
       _wasActionHeld = true;
       _cooldownRemaining = cooldownWindows;
       reasons = const ['persistent_high_spoof_evidence'];
+      canShowLow = false;
     } else if (_wasActionHeld && _cooldownRemaining > 0) {
       // Cooldown in progress after hold
       risk = 'medium';
       action = 'verify';
       decision = 'verification_required';
       reasons = const ['recovering_from_action_held', 'cooldown_active'];
+      canShowLow = false;
     } else if (_emaScore >= highThreshold) {
       risk = 'high';
       action = 'verify';
       decision = 'verification_required';
       reasons = const ['elevated_spoof_score'];
+      canShowLow = false;
     } else if (_emaScore >= mediumThreshold) {
       risk = 'medium';
       action = 'verify';
       decision = 'verification_required';
       reasons = const ['independent_verification_required'];
+      canShowLow = false;
     } else {
-      risk = 'low';
-      action = 'allow_with_caution';
-      decision = 'low_risk';
-      reasons = const [];
+      // Caution 3: Informational reason codes do not prevent green.
+      // Only blocking codes or unverified conditions prevent green.
+      if (result.canShowLowRisk && !_wasActionHeld && _cooldownRemaining == 0) {
+        risk = 'low';
+        action = 'allow_with_caution';
+        decision = 'low_risk';
+        reasons = result.reasonCodes;
+        canShowLow = true;
+      } else {
+        risk = 'unknown';
+        action = 'unavailable';
+        decision = 'insufficient_evidence';
+        reasons = result.reasonCodes.isNotEmpty
+            ? result.reasonCodes
+            : const ['unverified_speech_evidence'];
+        canShowLow = false;
+      }
     }
 
     // Track maximum risk
@@ -492,6 +626,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
       _callLevelAction = action;
       _callLevelDecision = decision;
       _callLevelReasons = reasons;
+      _canShowCurrentLowRisk = canShowLow;
     });
   }
 
@@ -593,6 +728,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     return switch (level) {
       'high' => 'Critical',
       'medium' => 'Medium Risk',
+      'unknown' => 'Analyzing Audio...',
       _ => 'Low Risk',
     };
   }
@@ -608,22 +744,27 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
         backgroundColor: const Color(0xFF161B22),
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (_callState == _CallState.active) {
-              _endCall();
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  if (_callState == _CallState.active) {
+                    _endCall();
+                  } else {
+                    Navigator.of(context).pop();
+                  }
+                },
+              )
+            : const Padding(
+                padding: EdgeInsets.all(14.0),
+                child: Icon(Icons.shield, color: Color(0xFF58A6FF), size: 22),
+              ),
         title: const Row(
           children: [
             Icon(Icons.shield_outlined, size: 20, color: Color(0xFF58A6FF)),
             SizedBox(width: 8),
             Text(
-              'VoiceGuard',
+              'VoiceGuard Live',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
@@ -633,9 +774,24 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.folder_open_outlined, color: Colors.white70),
+            tooltip: 'Screen Audio File',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const HomeScreen()),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: Colors.white70),
+            tooltip: 'Server Settings',
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (_) => const SettingsDialog(),
+            ),
+          ),
           // Backend status
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 16, left: 4),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -978,25 +1134,32 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
           const SizedBox(height: 16),
 
           // -- Call-level risk indicator --
-          if (_riskHistory.isNotEmpty)
-            RiskIndicator(
-              riskLevel: _callLevelRisk,
-              action: _callLevelAction,
-            ),
+          RiskIndicator(
+            riskLevel: _callLevelRisk,
+            action: _callLevelAction,
+            decision: _callLevelDecision,
+            canShowLowRisk: _canShowCurrentLowRisk,
+          ),
           const SizedBox(height: 16),
 
           // -- Risk history --
-          if (_riskHistory.isNotEmpty) _buildRiskHistory(),
-          const SizedBox(height: 16),
+          if (_riskHistory.isNotEmpty) ...[
+            _buildRiskHistory(),
+            const SizedBox(height: 16),
+          ],
 
           // -- Mock transaction --
-          if (_riskHistory.isNotEmpty)
-            TransactionCard(
-              riskLevel: _callLevelRisk,
-              decision: _callLevelDecision,
-              reasonCodes: _callLevelReasons,
-              evidenceWindows: _riskHistory.length,
-            ),
+          TransactionCard(
+            riskLevel: _callLevelRisk,
+            decision: _callLevelDecision,
+            reasonCodes: _callLevelReasons,
+            evidenceWindows: _riskHistory.length,
+            canShowLowRisk: _canShowCurrentLowRisk,
+          ),
+          const SizedBox(height: 16),
+
+          // -- Live dev diagnostics panel --
+          _buildDiagnosticsPanel(),
           const SizedBox(height: 24),
 
           // -- End call button --
@@ -1135,16 +1298,144 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   }
 
   // -------------------------------------------------------------------------
+  // Diagnostics Panel (Dev Mode)
+  // -------------------------------------------------------------------------
+  Widget _buildDiagnosticsPanel() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFF161B22),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        shape: const Border(),
+        collapsedShape: const Border(),
+        title: Row(
+          children: [
+            Icon(
+              Icons.bug_report_outlined,
+              size: 16,
+              color: _canShowCurrentLowRisk
+                  ? const Color(0xFF3FB950)
+                  : const Color(0xFFE3B341),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'LIVE DIAGNOSTICS (DEV MODE)',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.white70,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+        childrenPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: [
+          _diagnosticRow(
+            'Mic Stream Config',
+            '$_captureSampleRate Hz / ${_captureChannels}ch / ${_captureBitsPerSample}bit PCM',
+          ),
+          _diagnosticRow('Bytes / Sample', '$_bytesPerSample bytes'),
+          _diagnosticRow(
+            'Rolling Buffer',
+            '${_pcmBuffer.length} bytes (${(_pcmBuffer.length / (_captureSampleRate * _bytesPerSample)).toStringAsFixed(1)}s)',
+          ),
+          _diagnosticRow(
+            'Chunk RMS (Gate)',
+            '${_currentRms.toStringAsFixed(4)} (${_currentRms < 0.003 ? "SILENCE (<0.003)" : "ACTIVE"})',
+          ),
+          _diagnosticRow(
+            'Backend Connection',
+            _backendConnected ? 'ONLINE (200 OK)' : 'OFFLINE / UNREACHABLE',
+          ),
+          _diagnosticRow(
+            'Model Loaded Flag',
+            _lastModelLoaded ? 'TRUE (READY)' : 'FALSE (FAIL-CLOSED)',
+          ),
+          _diagnosticRow(
+            'Freshness',
+            _lastResultReceivedAt != null
+                ? '${DateTime.now().difference(_lastResultReceivedAt!).inSeconds}s ago'
+                : 'No result yet',
+          ),
+          _diagnosticRow('canShowLowRisk Gate', '$_canShowCurrentLowRisk'),
+          _diagnosticRow('Effective Decision', _callLevelDecision),
+          _diagnosticRow('Current Action', _callLevelAction),
+          _diagnosticRow('Consecutive High', '$_consecutiveHighCount'),
+          _diagnosticRow(
+            'Hold Status',
+            _wasActionHeld
+                ? 'ACTION HELD (Cooldown: $_cooldownRemaining)'
+                : 'NORMAL',
+          ),
+          _diagnosticRow('Active Reason Codes', _callLevelReasons.join(', ')),
+          if (_lastError.isNotEmpty)
+            _diagnosticRow('Last Error', _lastError, isError: true),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _diagnosticRow(String label, String value, {bool isError = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.white.withValues(alpha: 0.5),
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isError
+                    ? const Color(0xFFF85149)
+                    : Colors.white.withValues(alpha: 0.85),
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -------------------------------------------------------------------------
   // SUMMARY view
   // -------------------------------------------------------------------------
   Widget _buildSummaryView() {
-    final maxColor = RiskIndicator.riskColor(_maxRisk);
+    final maxColor = switch (_maxRisk) {
+      'high' => const Color(0xFFF85149),
+      'medium' => const Color(0xFFD29922),
+      'low' when _canShowCurrentLowRisk => const Color(0xFF3FB950),
+      _ => const Color(0xFF8B949E),
+    };
     final recommendation = switch (_maxRisk) {
       'high' =>
         'Verify the caller through an independent channel before permitting any sensitive action.',
       'medium' =>
         'Exercise caution. Additional identity verification is recommended.',
-      _ => 'No significant anomalies detected during this call.',
+      'low' when _canShowCurrentLowRisk =>
+        'Speech signal verified authentic with low anomaly score.',
+      _ =>
+        'Insufficient acoustic evidence gathered to verify speech authenticity. Exercise caution.',
     };
 
     return SingleChildScrollView(
@@ -1211,7 +1502,9 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                             ? 'ACTION HELD'
                             : _maxRisk == 'medium'
                                 ? 'VERIFY REQUIRED'
-                                : 'LOW EVIDENCE',
+                                : (_canShowCurrentLowRisk && _maxRisk == 'low'
+                                    ? 'LOW RISK'
+                                    : 'INSUFFICIENT EVIDENCE'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -1272,11 +1565,28 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text(
-                'BACK TO HOME',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.of(context).pop();
+                } else {
+                  setState(() {
+                    _callState = _CallState.idle;
+                    _errorMessage = '';
+                    _riskHistory.clear();
+                    _emaScore = 0.0;
+                    _currentScore = 0.0;
+                    _callDuration = Duration.zero;
+                    _highRiskWindows = 0;
+                    _maxRisk = 'low';
+                    _consecutiveHighCount = 0;
+                    _persistenceTriggered = false;
+                  });
+                }
+              },
+              icon: Icon(Navigator.canPop(context) ? Icons.arrow_back : Icons.refresh),
+              label: Text(
+                Navigator.canPop(context) ? 'BACK TO PREVIOUS' : 'START NEW CALL',
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ),

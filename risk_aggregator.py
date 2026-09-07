@@ -87,23 +87,28 @@ class RiskAggregator:
     def __init__(
         self,
         *,
-        ema_alpha: float = 0.3,
-        spoof_threshold: float = 0.30,
-        high_risk_threshold: float = 0.85,
-        medium_ema_threshold: float = 0.40,
-        high_ema_threshold: float = 0.85,
-        persistent_high_windows: int = 2,
-        cooldown_windows: int = 3,
-        staleness_seconds: float = 30.0,
+        config: Optional["VoiceGuardConfig"] = None,
+        ema_alpha: Optional[float] = None,
+        spoof_threshold: Optional[float] = None,
+        high_risk_threshold: Optional[float] = None,
+        medium_ema_threshold: Optional[float] = None,
+        high_ema_threshold: Optional[float] = None,
+        persistent_high_windows: Optional[int] = None,
+        cooldown_windows: Optional[int] = None,
+        staleness_seconds: Optional[float] = None,
     ):
-        self._ema_alpha = ema_alpha
-        self._spoof_threshold = spoof_threshold
-        self._high_risk_threshold = high_risk_threshold
-        self._medium_ema_threshold = medium_ema_threshold
-        self._high_ema_threshold = high_ema_threshold
-        self._persistent_high_windows = persistent_high_windows
-        self._cooldown_windows = cooldown_windows
-        self._staleness_seconds = staleness_seconds
+        if config is None:
+            from voiceguard_config import load_config
+            config = load_config()
+
+        self._ema_alpha = ema_alpha if ema_alpha is not None else config.risk_aggregation.ema_alpha
+        self._spoof_threshold = spoof_threshold if spoof_threshold is not None else config.thresholds.spoof_threshold
+        self._high_risk_threshold = high_risk_threshold if high_risk_threshold is not None else config.thresholds.high_risk_threshold
+        self._medium_ema_threshold = medium_ema_threshold if medium_ema_threshold is not None else config.risk_aggregation.medium_ema_threshold
+        self._high_ema_threshold = high_ema_threshold if high_ema_threshold is not None else config.risk_aggregation.high_ema_threshold
+        self._persistent_high_windows = persistent_high_windows if persistent_high_windows is not None else config.risk_aggregation.persistent_high_windows
+        self._cooldown_windows = cooldown_windows if cooldown_windows is not None else config.risk_aggregation.cooldown_windows
+        self._staleness_seconds = staleness_seconds if staleness_seconds is not None else 30.0
 
         # State
         self._decision = CallDecision.NO_EVIDENCE
@@ -154,14 +159,11 @@ class RiskAggregator:
         self._reason_codes = ["backend_unavailable"]
 
         if self._was_action_held or self._decision == CallDecision.ACTION_HELD:
-            # ACTION_HELD + backend failure → INSUFFICIENT_EVIDENCE
-            # Sensitive actions remain held.
+            self._was_action_held = True
             self._decision = CallDecision.INSUFFICIENT_EVIDENCE
-        elif self._decision == CallDecision.NO_EVIDENCE:
-            self._decision = CallDecision.INSUFFICIENT_EVIDENCE
+            self._reason_codes.append("action_remains_held")
         else:
-            # Preserve current decision but mark as potentially stale
-            self._reason_codes.append("analysis_stale")
+            self._decision = CallDecision.INSUFFICIENT_EVIDENCE
 
         return self.state
 
@@ -171,8 +173,10 @@ class RiskAggregator:
         self._reason_codes = ["analysis_stale"]
 
         if self._was_action_held or self._decision == CallDecision.ACTION_HELD:
+            self._was_action_held = True
             self._decision = CallDecision.INSUFFICIENT_EVIDENCE
-        elif self._total_windows == 0:
+            self._reason_codes.append("action_remains_held")
+        else:
             self._decision = CallDecision.INSUFFICIENT_EVIDENCE
 
         return self.state
@@ -201,14 +205,16 @@ class RiskAggregator:
             self._reason_codes.append("no_speech")
             return self._handle_no_speech()
 
-        if evidence.audio_quality_status in ("silent", "invalid"):
-            self._reason_codes.append("audio_quality_poor")
+        if evidence.audio_quality_status in ("silent", "invalid", "empty_or_invalid_capture"):
+            self._reason_codes.append(
+                "empty_or_invalid_capture"
+                if evidence.audio_quality_status == "empty_or_invalid_capture"
+                else "audio_quality_poor"
+            )
             return self._handle_no_speech()
 
         if evidence.audio_quality_status == "poor":
             self._reason_codes.append("audio_quality_poor")
-            # Poor quality but has some speech — process with caution
-            # Don't count toward persistence, but update EMA conservatively
 
         # --- Update scores ---
         self._current_score = evidence.spoof_score
@@ -236,7 +242,7 @@ class RiskAggregator:
 
         # --- Cooldown logic ---
         if self._cooldown_remaining > 0:
-            if self._current_score < self._medium_ema_threshold:
+            if self._current_score < self._medium_ema_threshold and evidence.audio_quality_status == "acceptable":
                 self._cooldown_remaining -= 1
                 if self._cooldown_remaining == 0:
                     # Cooldown complete — allow recovery
@@ -244,9 +250,24 @@ class RiskAggregator:
                 else:
                     self._reason_codes.append("cooldown_active")
             else:
-                # Reset cooldown if evidence rises again
+                # Reset cooldown if evidence rises or quality degrades
                 self._cooldown_remaining = self._cooldown_windows
                 self._reason_codes.append("cooldown_reset")
+
+        # Blocking reason codes that prevent LOW_RISK
+        blocking_reasons = {
+            "no_speech",
+            "audio_quality_poor",
+            "backend_unavailable",
+            "model_unavailable",
+            "analysis_stale",
+            "capture_unavailable",
+            "empty_or_invalid_capture",
+            "elevated_spoof_score",
+            "persistent_high_spoof_score",
+            "action_remains_held",
+            "recovering_from_action_held",
+        }
 
         # --- Determine decision ---
         if persistence_triggered:
@@ -257,38 +278,42 @@ class RiskAggregator:
             # Still in recovery from ACTION_HELD
             self._decision = CallDecision.VERIFICATION_REQUIRED
             self._reason_codes.append("recovering_from_action_held")
+        elif self._consecutive_high >= 1:
+            # Single high window requires verification
+            self._decision = CallDecision.VERIFICATION_REQUIRED
+            if "elevated_spoof_score" not in self._reason_codes:
+                self._reason_codes.append("elevated_spoof_score")
         elif self._ema_score >= self._high_ema_threshold:
             self._decision = CallDecision.VERIFICATION_REQUIRED
             self._reason_codes.append("elevated_spoof_score")
         elif self._ema_score >= self._medium_ema_threshold:
             self._decision = CallDecision.VERIFICATION_REQUIRED
             self._reason_codes.append("independent_verification_required")
+        elif any(r in blocking_reasons for r in self._reason_codes):
+            self._decision = CallDecision.VERIFICATION_REQUIRED
+        elif not evidence.speech_detected or evidence.audio_quality_status != "acceptable":
+            self._decision = CallDecision.INSUFFICIENT_EVIDENCE
         else:
-            self._decision = CallDecision.LOW_RISK
-
-        if self._decision == CallDecision.ANALYZING:
             self._decision = CallDecision.LOW_RISK
 
         return self.state
 
     def _handle_no_speech(self) -> AggregatedState:
-        """Handle a clip with no speech detected."""
-        # Do NOT reset consecutive high count for silence
-        # Do NOT escalate risk for silence
-        # If we were in ACTION_HELD, transition to INSUFFICIENT_EVIDENCE
+        """Handle a clip with no speech or unusable capture detected."""
         if self._was_action_held or self._decision == CallDecision.ACTION_HELD:
+            self._was_action_held = True
             self._decision = CallDecision.INSUFFICIENT_EVIDENCE
-        elif self._total_windows == 0:
-            self._decision = CallDecision.INSUFFICIENT_EVIDENCE
+            if "action_remains_held" not in self._reason_codes:
+                self._reason_codes.append("action_remains_held")
         else:
-            # Keep previous decision but note insufficient evidence
             self._decision = CallDecision.INSUFFICIENT_EVIDENCE
 
         return self.state
 
-    @staticmethod
-    def _decision_to_action(decision: CallDecision) -> CallAction:
+    def _decision_to_action(self, decision: CallDecision) -> CallAction:
         """Map a decision state to a recommended action."""
+        if self._was_action_held:
+            return CallAction.HOLD
         return {
             CallDecision.NO_EVIDENCE: CallAction.UNAVAILABLE,
             CallDecision.ANALYZING: CallAction.VERIFY,

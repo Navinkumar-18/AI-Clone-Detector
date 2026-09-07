@@ -1,0 +1,2252 @@
+[
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1090286",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1090286.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "77c1fa8c66cecf18ffa53d712b9977b5c62a9664251b37634781108aec972007"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1119156",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1119156.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "83e6573d4cca7b9483865cad31203359374d74f814574c605e34a6d18de08df4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1121887",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1121887.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "4402ad80a0ac82d1e6c0b01c54343c4a57ddf0dd69919f88bc383bccb1bd52ac"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1133168",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1133168.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "75d477518b291add4873dd22913dccd913daaf89a500aa43ef9fed04cdce7b9f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1173765",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1173765.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "43a38a4355d153fc637ac84e299a0ecf9a8f48f9e9fdabbf9306092ea9134bd0"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1219450",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1219450.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "f9844eacf40b8e69a67468c6c104fd163027e61abe4bbe9f76c3027a6cc18ed8"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1232613",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1232613.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "8986af9cf158be93b4f3e853123cb134af3e4f667c155e2dfbab30e32eb152fc"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1239754",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1239754.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "f73bfa4350e1ce43ffb1faf36f5fe86329ff04dc9d36794129fdf73fda7c1410"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1245000",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1245000.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "8118469f91be1c5904cf0b3d0995152cde2d79e55a5fb68710949359418cc04d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1279882",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1279882.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "a148fef2f254edb0505e4fa22343bc10389132dbef8718ecbc0daa4e3256b6d1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1306387",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1306387.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "fdebb904b2b7b9bb6fe170cf6877d283ad4dd21b8c0c44fe9cbec25f56f6414d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1330775",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1330775.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "cab761a06bc35265b25bb60af67dd8201d95d7289877d417de56f7141595fc3b"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1335445",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1335445.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "328139b15a6e683a40b1fe761806438e79255857c557903e683db39723f86a16"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1399387",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1399387.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "8da146b2ba403e10bd281321d54ef22b2b5c0a4b90c069a55d6ac16c87d27982"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1409575",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1409575.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "02ba4492ca2d0d0cfecf078834d6c49face1eb07d624bdfc6fe7ff3a0b103dfb"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1426585",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1426585.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "157a52135b1c8da92a36679ad5e98be14b94c9eaa1507d06c85866a4948a758d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1472077",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1472077.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "262a90b05c5201de65baaada59b698b95ba3747112fddcf166206ba7b57db8e1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1518150",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1518150.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "88d08d7aeca6093e264ca14d4451040ba29630241ee4d34180f4499467858b58"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1614129",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1614129.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "3437d51fefd4456e817c04a23537d01adf9a80dc5cf4fb219af9e7c61f0468e8"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1714000",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1714000.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "4bf5afc37707b87bfb26f7f3700629080ceaf200d5859553730d3b0adc400af1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1789452",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1789452.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "05bc39e558f0d9d689612073a3bb8dbc869ca13a1f035bb134f910cdb866a52e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1819301",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1819301.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "00c3c35a3646cc7013588c2167011df11c87348d058910f0b51d0c9c91595231"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1879957",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1879957.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "040ade165104b96e078e6964390150957cf42cda01074bf333c819b2c327683d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1884465",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1884465.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "3b25d4edce974071f87fc517af6d8f3e8eecea3e8ccb45fa29aa4a319a8dff42"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1975885",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1975885.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "75303712cb7cc7810727eedcff1d06816ac75477e9f227f553c44121bf9e7f0d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_1993949",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_1993949.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "7f8627a3dad3fd05998b2a900c158d1e34d9e248af7ee87f3b0e6bda974c5856"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2017251",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2017251.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "e036d3b10d8c624a248c4bdc3515a0b7220632bf31c4338b5caad0d2b52d9064"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2022297",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2022297.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "3bbd94813a42cd5e59f95bd88b398c5f5b3f20bf915a7e3537e26f6cff24121f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2124484",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2124484.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "39fc38efdc61abf9e61d3a93fe34210edc81ccecab63a7387d79e08e2dffacdc"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2133778",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2133778.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "4bdc2df32a65516b1092b43102caa29be8fed07c93dfee5d519b0d02d66ddb40"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2149963",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2149963.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "8cd126ed9e7fde072bc5c1f209c02b031b89da74cbd3f30b17eec7b41d51d51d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2165027",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2165027.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "120537e2b0f6f3f0e7f01100cfba14b5659c8007e95270a494e9db9de16f6305"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2232106",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2232106.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "c4432bbb4f605feb9ed5b80129de57ccc6ce9d258f3f482f3ff6d03d052e282a"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2237304",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2237304.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "1cd82217efa316c18dcc502964ee5e3e1323f0d3efafb8c6d66234636a4bf794"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2239661",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2239661.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "e7f49e6d1bdade5ddbaf8d9091fc003293f20aebe2e1bca3d972654d90ddeaa9"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2248106",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2248106.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "59a81d321bd4860e70b9f4822feba893b1f83859fe2c73e6e479c0914e7caac7"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2291264",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2291264.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "22fd0fc77a3c0450844fad183652cb193ec2e91cf1d9e2bfe3e78b203fea92cd"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2307156",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2307156.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "987a926fca091efa7cd3c4286c87daaa5f6cf402250ff8bfc0b5ba86f5865d29"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2331981",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2331981.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "00e7c6f6ee0c694a692f63e2ba5b30f9548addad71ce4aaf0672dd8851a49e26"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2333541",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2333541.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "a64a5efac9309df5dc85ce9c47f425a60318f3ebdf91703ae0b7bbbe3725b893"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2334188",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2334188.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "ae304c4e0bb40cd4809b1646fd5c57aeb721479e91d288969d43b548bad85dc4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2340825",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2340825.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "199584b66e9f70585688db1b9438f9a6a004104fe90af3c5ab3b4f8ee504a5a6"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2363183",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2363183.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "bda01e872281be865a1ae738435fbebc5063cccda58629f805e2c2553b0cfaa7"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2367899",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2367899.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "31db35dc30e7cdf5d5fdbe571c32b7c0e312271b64afe5940d037e8db6ab0990"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2369833",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2369833.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "21523102dfb8010db91b71238f4bae75ca2f825c70295c2fc7ccc78a473b2fe1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2389494",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2389494.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "b38766ea0d5ebea2442feb6da41113a5b29f11758cc0958b3b0b4f17d7ceca08"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2390711",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2390711.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "336afaa465b94019019821e7f527780f44800967401ecc9ac92a3e556d4328fa"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2416538",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2416538.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "0b7af72c2614e8e4af3aca17011aeddce083d6278d5a1f858cab138d2d9a5c98"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2417895",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2417895.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "87e77e6cc182f5b17262abe04a77315f8ac7353bab444980de550adbcfa5533a"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2427933",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2427933.flac",
+    "system_id": "bonafide_none",
+    "label": "bonafide",
+    "target": 1,
+    "sha256": "4cf0a451dd757901d7ab5bc8113d2f66f87a7fbd22334c984242adb0af58fc50"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2449712",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2449712.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a9c091ea1078bf5a27af4d28d3b3b9ce067c370f72ec2e33c0ab81d0e9e98b2c"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2453330",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2453330.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "d089819e5c8a4da2ce87ea7bf1a91e7cdf86e3f0954cb2216ec413b81b62c9d2"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2455736",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2455736.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "ab48d2e49219efbd350a937251e82822c9a3f488f5b0568bdeef837d0871daf4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2472289",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2472289.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "7d53bfda4e8e2841a77027ca0c8fb28c78cfa2cde32d228aac402fb668a83277"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2496514",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2496514.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "cb9d714c7dfb83a25d1deea9fa0ab39d55e0b084658a904087d854d24821c671"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2552799",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2552799.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "beb7cc1b591eead33fc205cea855ede89f8fecae98ba8f84232d2bbbea5d3186"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2571019",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2571019.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "8f875c2e1fa2b859929c0644a870d55f2baceb51310b4312dee28cd081e65517"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2654479",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2654479.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "4362d9208e7ea9adbf58697cba3e42baf0507ca4d470fcace41182a97f50cea5"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2670696",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2670696.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3c20e87a728ad6770956e4c6f325c48d2c4f09d3f9b493945d7dd57d3f9676db"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2674978",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2674978.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "ffdd1f3c5611658537d24d148efc78a9a18e6faf37900dc2c7968fc3e5c2f9c4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2689476",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2689476.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "caf69aa89c6cc3ceb2732479a306b92bda2604d2aaf88e5610450e361036caef"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2741757",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2741757.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "52e78ad138725ff8b6fbf255b403a98224276e517150911937e7beeae43d4ce1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2754300",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2754300.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "cbeabceaf5374943e7bb67d34a6bc355e87d47632887edd79fde9837dee99272"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2760189",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2760189.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "096773b26b84418ee59bc4d207601fa6cf926553da5f453ea6ec9154d2d90ac8"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2803648",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2803648.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "34083a7429a1de2388687a841a1cb30eb82eacc83a396f6d494573ba5dd8b232"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2813590",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2813590.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "88bf054bea3de2fa0466874a569549dea36a149cb3e9c047d25d8bd83810913b"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2844885",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2844885.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3a0bd379ff2f39709ceba6e988574c9f6a2b978c3d9f1dca90f2d92ed0b8a00e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2850598",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2850598.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3109fa6612d62c1bc60ca715578cf4d90d5da1fc4012f621b80f499d7fdd1345"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2862236",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2862236.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "dbe1830c402e5c7746c8991959e12c3d388be3f85126d4df0aba4f708838bea1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2920009",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2920009.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "aa932f4f39ed6e95ff35a2a7e0267d7f28797a43fb7a9dfa4f7637508f67d0e7"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2938440",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2938440.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "18f2cbf165331c487041b3d96d50087dfef447905d19e8e80e9b35fb3be03a67"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2942769",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2942769.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "36d63501bf9db06354f6e361f0d625b3e1ce71c89ad2fcc3eb6ee0db519b317e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2944634",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2944634.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a561c96c5f1e721308f4a2e3183358cc038b761d1f03debfa1ffa752c4cddc54"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2945850",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2945850.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "2eb93c2daf82cff3bf794c016ce168c26db03ed2309cc57d00221304a1ae004b"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2954917",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2954917.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "312c09032cedd940c6561924d33e867258441f88ad61091c0a08a31a0dc539a9"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2973553",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2973553.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "61dd8a3806c34be831eab8da4e6516efb8c4a35bcbffb882b6e92b67c4b2441a"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2975559",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2975559.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "000d0cfe2a6d3f054447764ee2516b1837ce52fa3b19e791e2b2091e21ad5000"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2977712",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2977712.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "205c0689b39ac1000416699e40a8c0ddd5f28ea7dd494cd8183175d43094f836"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_2996902",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_2996902.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "7f65f8b82eba3f275a3ef92765484d48046da4183af1144e92260f60b2fdf494"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3000565",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3000565.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "526bb78ce61f613fae2a9af474ab9cd82b4264f91af5ad50ef0dbe6eafbc0d46"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3019059",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3019059.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "9f579a57f943c097f8f2751143f9e6590eb91c00acbf2331549db3484c0b8656"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3024431",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3024431.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a125b734656ed5aa7bf94ac73c465cb0fd38d7f7b967306f27ac4f3cac0a164e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3027894",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3027894.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "15a180212ba97a54c3551446836c0dd276289ce7056c6f67ef16b7f5350d6ae4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3040671",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3040671.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "7f973f0ca289cad165e190575fe3ee57bb5deb2e66cf663c8f878288267bf70f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3074651",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3074651.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "dd223cba74a2a69bd054b4ee0a66f58e2a9d59dc359c8bc17ac230ba92b19d40"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3075867",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3075867.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "6867d022723471d38148fd7008c499fdda43354923e7370c06f40d5ff58b72fc"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3079188",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3079188.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "be8dde8dc49ce9c3729a6b84f9396c080a0e070239af54aa13fbabfa7d3a19c4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3082795",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3082795.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "6c22e7d46539450de39ab88b36a7af0e25e88e11e601d100e623abf1ac9600bf"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3086617",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3086617.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "cfdae7cba73f2b032e1acdff4aaed3cddcf621eeb329f70267cd0f490cb42890"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3096505",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3096505.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "4156e4bb7eeb63dcf24f5707b6e6c3d91d45217e4e359e75d500e365c9aba5a1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3137946",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3137946.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "9bb1eb8132a1dbf8d5481b94155c0f795f2d6120233b3e186b59fc986f097747"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3141328",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3141328.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "bf77ba26b08770ddcc321028d3d3e62b95bd5ec0c5801925c2fc8d503bd79f98"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3158870",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3158870.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "30e22a180ba0d1951c2935da999ca86711ef872c4eb851fe5a45075aab8216ff"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3179640",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3179640.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "c9ab5acd982ae040bb62ad8c8dc83a96d74d862ed0713cdf04f7c164f6ec3e93"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3189395",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3189395.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "cb6c0ee46885885d231a3c8a335d997b3ac7ae428e4d6992563643120b11661e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3196844",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3196844.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "d9101c5e67d4244ffdbff07b2429e78be5ecb7906adc86631012fa6b101250af"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3264952",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3264952.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "75d58c954421683f9eb743e6030965c48da084a58e0db7b66061af71199dc935"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3343965",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3343965.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "929595754ec12a3216ba04308e2da8f7b6c25ad966815a3acd23aee8eda1a25c"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3459809",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3459809.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "ebc991baf017a6dab758e16cf2d604e0f65ed514508426ff5b7f9dec86d850e3"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3507167",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3507167.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "2613e1daeb8389ff539ab6537b25ae3bee647eecb1a71bb0100cadff2ca0d26d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3631905",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3631905.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "5823eda3733c881dc80f1d4c12d92891886cf6ca9d48a71347db66afb13b709d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3717777",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3717777.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "4f2bfc209b304b88bea3931919221487b66237a419d269d5880f4e72b935ccf4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3742070",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3742070.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "72aba009a624bc01d30b59c96950b8b9311dfbcdc1905245ee94116125d6b944"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3836344",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3836344.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "85943693be71164a96d6e32389a0866b065e9ad37b1133e5c8eb01f67aefd40f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3876129",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3876129.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "c7b65de827f2f1744ac5a74c08945609dfc432475539af75171bf6ec430303a8"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3908841",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3908841.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "232405601bb7cfdb30035cb70019706400fd1b65ca443db31d4b45c247e6fad1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_3916177",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_3916177.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "5ea34247e047d872d88d79d590f0d95d8b6b176fc4a1c01c90f00b55cd050b59"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_4005854",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_4005854.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3a5727b41876db7a926e6a7ba59bdca919b102ece87f5b489ddd51fe8aa9f240"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_4063159",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_4063159.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "d16d01c46b57dcc02309ea83c94e80d8e4c011982f1d08cd52b07b5e1f959c5d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_4129574",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_4129574.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "d11c69798e155fe5766986cc12bd57f3e1ebfcbc301c82c3b03df3a154a972f7"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_4328579",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_4328579.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "1a7169f0dacb5e34afa3ce68a1579a825ee73961bf6e697f56f810552c4d3138"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_4524484",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_4524484.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "d8dba4923c20d2b8b62f80d1aecbc8a3abb75793468b97f2f64ceceb24960e70"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_4789150",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_4789150.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "d47dc788888958a597e12fd32638f844fed28d458cbd1f01ee46942afac045dc"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_4833247",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_4833247.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "bcc1337e666d358648d1646589a5972853b969ce5ad4841cb50f99e6e7d848a5"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_4877516",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_4877516.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "1791117abfb903e2c8f30466c3cdf90dead422bc24c716ce8d9b0944fb4f2eab"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_4900801",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_4900801.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "10f0e4681c7c75c1c79258a0503398f7217544b4f0c4ffb5ba2de59e6e2ba2c4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5072627",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5072627.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "d5a0e53655ab736b02e5d1887504e5a9830e28e77a62050f26960db71b3227a1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5086183",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5086183.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "5553abcd66c7427fe601238908041a74d7a99b8a6c5e32c08150534d77123d66"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5143230",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5143230.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "6ded17dba5a9788c5b3f90c0c1989b07fdbfabdccaa0aecd0350fa5d9c900d03"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5178609",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5178609.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "ca17558e603d92edc16c39332acacfc20a60d5ec7f4b4f94a136603b2aa40c82"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5182745",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5182745.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "296602e89e61f165ce9d692295341987344e43cf3a8ccdf68de68ec3bdb47d90"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5240410",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5240410.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "67d5b3fa2fd4d5be83557afc33568b0e111de1f4395db6f81bead4a9eefb25ae"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5334203",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5334203.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "48cd30330396d83fd116300aecc916e030e12cbfc602a7331c6dbdec8ae5e817"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5451679",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5451679.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "7a83f58a25affcb5ea1fb2475509656c3033e6d18885cd1c44e740cce6fa1d88"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5508177",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5508177.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a0afb6d8e35843b0a73a0259fe6ace9e153a18124180001607419a6b42dde4d3"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5604089",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5604089.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "142488e23fd180b38a043217d097f6fe00b9fa5ae31d6ff16b54928dab194990"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5700038",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5700038.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "2f8bda69500378c656c4ad1d37efa0a1db0b0471c2218525bf75b99aa3e1be79"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5833858",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5833858.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "5ee816b7a8438bc8170103ba13e0d4cc1fa5555b761d9b311486231389a009f4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5929116",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5929116.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "e6ef32668bd042e7bf0e3630a748163d138f56d897963e6a1ab0641be7334d6a"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5930714",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5930714.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "22004ad29a90c2cbf18f1ad0e7dc95083cdeee1916e1b28d8500cfda0621e8ac"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_5985188",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_5985188.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "af9abc945b2bde37ab004df9cda06d3a029f3cd3ec0c68d04c07ea4fee743cdc"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6055606",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6055606.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a608f0c5c57a49e6e3e69214a01fb5ff6dc8739329fab6725054f1e652eab3b9"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6066874",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6066874.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "314a73f9f94151d11e2783822624f234f00f3f23c6d9c5db35481b6d1bc3a083"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6067380",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6067380.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "8d29772226c9f9c6b01b86c92c062c622c717dad044d31f22b77e1edfb711086"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6137766",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6137766.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "82f8e8002534d97c168e45896ef02409638685f1f7eccfa55346f88f2d5a84de"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6150120",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6150120.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "aa15a09903c7f1afe4aa19676e85d22e3062b9e8d6fd427015b0aeaf85ae5ed4"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6197289",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6197289.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "03b094f0724f269b4c6db6bb62c800c537b16b582c8762e3ecdf615a64114ce5"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6198995",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6198995.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "f6a1976cc66b6df25e66c199c842eda5d2931e64ad7ada7389f71a3359ac239e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6231410",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6231410.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "d439510ae05ff2dbeaef32d063d7c0db75d17674975a5d0085a29363e99611f0"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6258471",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6258471.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "c0ecb2edd24391be5d646619617f7311e53bf2fde06e2a52033bd3261d97bc82"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6265671",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6265671.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "ab5ad79b7010a3ef2ced1c678dc324653c6adefad184cfbb9abb2f8d55754c59"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6288751",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6288751.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "0f7a0ee2ddf4debe1d97133d0de11a4327536615d9f9502597f0f4153761069d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6289915",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6289915.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "8560b55b54c7c401ceb6c8b24fbea6b0ffd369811c3a1be5e8709515abb59f5e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6303389",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6303389.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "959c7b0d4d626edbd216b3c331814cd35d291cb4e1ad0e9f538c6c051f659c37"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6353335",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6353335.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "9d861394969e319bd526f013204d734ff1a98d1afceb28c66f30ae4948ae4e8f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6386877",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6386877.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "5510e0732220a9b026dd07e891d864dc806aef2ffcd502403747dd9daad6d707"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6453794",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6453794.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "5ba09380f70abc33da8ee0db472901c87bebb47ec2289212ba7b32b8fcdf8289"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6455651",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6455651.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "2245d7739b966fdd4fb1b0fbfa6cd2a97cc5937e730b94b826fdec4fba83f254"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6458898",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6458898.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "eb04adbf8a7ebe8c1c6d26f1c9da2b1724cfd2d788b52ad964003191064398fb"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6459646",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6459646.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "64301960b8ff5e93bf2dfb1a0a0cee02a070f622564828426c22f63b4c15cf6c"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6478834",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6478834.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "0124a3f9a89cb0679f5945395baa0842a9a38fdf55f4722a792fac22570ac746"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6648802",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6648802.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a16e198800b6a254b535938b0041e44af3edde7b5c6b99da5c26cc0986af78e0"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6663247",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6663247.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "77dbacb240ff17bcda42cb0aaf94db2197e9616affae9de8611ea8fc4086ea11"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6679303",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6679303.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "61c857108934d1edfc4e2cd6a0c77f684043bbaee3108446d1183db760bec266"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6700006",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6700006.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "f08edfd9fba9295fcefea3b2acfdd2e03b1f6c6a1b6e6d94fa8227ea8a3e4895"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6724166",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6724166.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "32634326335ecfa95f06464e77640508bf3244b112f3cd4fdb397184359d1a10"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6754294",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6754294.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "39feef307552c9c5bb338047e8b84bb6093631602a6462bd8514ad5b3103f8a0"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6818564",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6818564.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3376d5faca7891b9772b03e30e9f7fd72028fb852955270ee46631b7ed6e8a73"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6853824",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6853824.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "df1460151c71db77745e223adc940e69ff8ecafa4d268954c508c418684ffe32"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6912038",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6912038.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "534ab4987bf8b34094887b02cfc2fdbc86aa71fb169d49632356a9eb774b7d6a"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_6976006",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_6976006.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "144ebefaf921d3055009580dd7ce012a58c521c9f7f0a48c3aa40d0c8f8bf9f7"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7030288",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7030288.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "6abdf95f39950c04d4acd443d18e957bab738fa12ca27fa4737b73f2da59c0b5"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7051994",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7051994.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "acda0c2af7774268e256f00163d543defc6a840d5bece1c96950401e86e41391"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7054977",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7054977.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "cf811991d6e230e239794c160da0c9eaaa6ef2acab0b72863722cbf3ca692271"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7130250",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7130250.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "dc3222b78a035a3ec7aba2c0f8cc8bc4b82cad957a8a4fba1526668475d13c05"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7140023",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7140023.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "c8f0b20e0e4f002c626bef89bb613828f9a3b237f74048d1054581b8922ac5f7"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7148850",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7148850.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "e80a20830fc22341b36eed483a103e269530a4940c98709ffa6a843455b35e0f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7153745",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7153745.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "cca9bac2d5711bf9ac9b6ada1b16e92fb3d922bfd914e87c1f78c833dd7fee5e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7172970",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7172970.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "b7eef24841ce220ba9701c255b0fc48ebe907cbca361569162fc81d9f13b74ce"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7179829",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7179829.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "f025a478339036d300ed6c0ba1ede999d20fce90b609d0d83254a45f12ef2ea6"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7194660",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7194660.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3be9c0a61e02d8e844b83443dce606197f0aeb0287828e8fad8c8d3e0ccd272a"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7269236",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7269236.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "e1fd1c1834c63c4c839e0c489fda266d489a31801f8eba084f6166657bfcc152"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7341689",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7341689.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "8574c76b64ba3dfe5812f39fb2fa424e73cbd278a6ef4d3f0e63508c688cae15"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7360454",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7360454.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "33e8a81d2b54d62963927f5020062ddbbf58537a18c948ba03da2cb25cb08601"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7376093",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7376093.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "c3b6741e9fc6cc36a6e4beb290cca9da7139fd55aebb07531ffefca8e0d1dc74"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7399617",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7399617.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "cacc588875e13e28c688d70f256200b4fe2b3c9fa3534adce1a742a0cd740a6e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7450790",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7450790.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "2bbc5657d109871b61eff56ee82881805dee84227e41decfd1bebe9c4370920e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7473394",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7473394.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "be9e0b4844b189ca3ae5c0d0baba7820fc0883f66b33917474966efa84039ca0"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7501292",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7501292.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a15527bb6318b8ddd58ee8e22342a5ee033f9749cd6b22010deaf507434cc1c2"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7512726",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7512726.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a4c8c3bdb0ef2cfd279cefc56422d1ce8fc053c7e4b2c40a048e7881947a0f8c"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7521836",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7521836.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "03dc3ed3917ba0ffff36417e0dda2a15922096cb6f0c23c8b7b1614d34ee7249"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7534463",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7534463.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a91aeb4d03260cef763b9c68379f94c43f687caee49503a0d23c71f552162eb1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7543100",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7543100.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "795120d6da8cea1ea374b6a7cb295ff4a19412014cfb48a381510fd82353453f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7544405",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7544405.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a7e9e8952a62184a707197bd337f73eb3ee34841cc43166afa59f84eaf502732"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7565232",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7565232.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "c01bf2c25763cf5c3eb915a8ba06c495bc115c1448e974f17adb5f910de59a08"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7573423",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7573423.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "5e2bab26c8cda4ef0011fa0442e15d7a720f64f60031d44a543718b7a54b33dd"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7612426",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7612426.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "e98ba5c88b3924202f703617290b65958f22b7d2c2207d5bbf0081bde732ff3f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7622198",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7622198.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "ce718dc9548f5f30eedd0b31da9a00a3230d1696170c41950cac0ce6b9034e08"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7638211",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7638211.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "2a01533602e07718dd0c5c0b5036b1be279efa4b365f208615f92d4711b03099"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7679130",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7679130.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "f11e25b36cec31cc7ed4b544037381227f62d66ee1264799e571411d2a58da0d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7691845",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7691845.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3924fe6ce3d6a943e3f5858e4b18663e941991e1b64aafc5bf001f4c39192ba9"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7712846",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7712846.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3840917fbfad4d280cf9f7e0b158e182d821e81b197c59630de248abbac397f2"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7755990",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7755990.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "e4643468e4b20cdb1845c9b4e8e15d8a4ab7c8848910aaa706cf4eb051e912d8"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7758267",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7758267.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3a13878b04a46bcf5b3056be9885ea52013374c93c37b9b77c4e61a71a52158d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7758918",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7758918.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "703695e10c124292654c3d93c9c09daeba0e151faa7faf74ba83633e7353c4e5"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7787517",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7787517.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "774fe95cbdb53469eac523cf8e29b07c2d7ac10ad3d6a666a02d3349ff68bbb5"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7793148",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7793148.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "ed4c9b7d8c1756f7fb88cc43003e7145c8e8c8b33e38ab20c6dffbe1cde6991e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7798955",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7798955.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "0dd62e9192aa99460084acdd8170fa7e2c7dc6282a3fd954fc145365fe5aed65"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_7870292",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_7870292.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "887df221b3c9bef0725f71a6d88db7bd692699527bb675f685c19d22f26e1087"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8017626",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8017626.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "879f4dd1f1c16939570a1c9b6f0693c7d379bc182461ba302804f8ac01740d03"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8034204",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8034204.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "2694e40a74fb6e3fe2411bac591a3460e72137ddf9a6dab03531b93d944d26d1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8184939",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8184939.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "6b6d5f293eab599407e2d8bafd17990a22c80596d569e5bc54ebd1fc717bd432"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8199784",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8199784.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "6f33b9d12cc23f19733b2ca184d57b7ea27045117cc72c46558b0dcbfc200f42"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8241585",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8241585.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "ba5223263247d2e287431b4a8b656f6cd81fe1f344ffd9d91278dc90a435a586"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8272605",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8272605.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "605fb83e0e5fcb6a997ce03d3ad81b7f8d8f24c13e0d240db247ae3a99ccb367"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8305753",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8305753.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a42ca268b0350ab40dd603e2a6340cbd89a25c1262624d2752cb9b7360722541"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8428131",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8428131.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "b99e93f21fa3fdebf916c748e92d7975af269cc94f7f1199592d3d1ab0087d1f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8430669",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8430669.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "5706043290ca464b89566da3ffe20570ec34445c8395f37395dea1492b877daf"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8432583",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8432583.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "e70192bfba27c1aed36c4ac4836304fab7fbb34976418c95182b5156f3c8eed2"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8693177",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8693177.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "b9a5968a00ee0e633363e44776c274a5d5f27eedddc75717987781cc85c30e83"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8699257",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8699257.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3825fced65bc80a32a946d2bf9eaf76d4058544a7fdf3bd31883ba2bc0db9153"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8713325",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8713325.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "9819944a752fbe1767ea2d93490ec9728c06c62a18147f15b5fb5a6a1ae68c09"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8716023",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8716023.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "bf3a7864ee016b93073cd0f188bd1b6bac19a5c66f9324bd0d52c66d735b39ec"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8736165",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8736165.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "39a0cd14798e2efc1b496e65f46e1fa70dc91f15fa793e90d297ab04ef56e3cf"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8750703",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8750703.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "1a915d1385ca6f1f2e5a4c2327879db94235fd58595458c195f5926c23e1322d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8764814",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8764814.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "ff644b4205e43e4a133faa86f811909af471bf5780eaedfe73822b5cc021b639"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8812163",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8812163.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "c4cbc5a2c9008f6073003587c37534e78a294165d725705fe8d4000f7cd3e08f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8813855",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8813855.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "e238c1cf0c8739eabbaf5023bbaaad4d07423b5f68d2e433a61acaa8173c3511"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8817568",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8817568.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "24f9458903a64204b8add0aee16528f4c35c9d4ee252418b0f7109e7d5eb6c71"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8869015",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8869015.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "8f261343a3393dffec2c9996c9c06cb606c7330171ed0b98c978d9f585db6a52"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8869959",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8869959.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "fcb114b9e420d56c031c9c9020aa9501d566d58529c94d608f2ca3f02e037bf7"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8923486",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8923486.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "41569663c79cc0a858a9bc3e8bd37362854f7cd7ffbd1b5fbe4c08e5fd627ee1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8966044",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8966044.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "436c6e1f2e7ffd9e8cf5a85b8d16bd44545c6a3f623e6bd74c890e46eadb5ce2"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_8988565",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_8988565.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "2a875182aadd8a917cfec93fa2ffdc4e5e2fffb9fce2a838bc60a145cdf4972e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9015485",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9015485.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "44b4af7a6a4de4071f5d5d414cbd012fa863c9ad7d548c506f593ffdfc15370f"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9042964",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9042964.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "57e8e0985ca0808879c1c73390b78f4442203989e22e50872c0cfd6bfac37100"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9113203",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9113203.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "540b938de66b3810baa50c026e526c38caee60bf2213f1d16e05ba8b5e548aa6"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9134844",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9134844.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "c71f93db2168e757c73a413abb10ca0a732202468817d495cd53a9791cbe34e8"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9239572",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9239572.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "9c339f8b9d75845dc544eff7119ba154a5b34d9112eb173714457d6111db2b8e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9288302",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9288302.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "b1252b55d0e7dc4dddbe4cc078b43f1790662c94b1012053868b42db5cfbd387"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9303165",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9303165.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "6afe61cdf4bfa6fb51d5a879c1df61ae0e4bdf91e2a28a8261fc090f5707d4ee"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9375342",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9375342.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "01e3a07f69f7abdb102f733f36186748bd45bd75d747ff34ead2540738e40d00"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9462553",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9462553.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "31734a9abd0c0e96cc4819e477470a79bf9e8fc5845972bea02ac248390c441b"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9498667",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9498667.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "0e0a1694c2a1606ba12ab0939cddc1f1b85d71fd944710826c09f8c1cbb94770"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9509324",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9509324.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "2673d40127a6b3fc68b3827c7086ccbb78b683a3f420320b154f37200d3abbb0"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9560424",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9560424.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "78a3aacd1ab486772ad6b4e673ce36b45a18755796dd8679a4b731bff4ea3281"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9584404",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9584404.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "693481e7d2699c66a8200278c91ec282c1787484fc9989f4c881581f9d453a16"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9602677",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9602677.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "cbc06453895262f9ee0e0884fbf935a8a8237d168c7b9867658ff9c7c7a6fc97"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9620410",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9620410.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "6beaddd7a3f2649634ae5aa0d31d023f58a5b2c3a0c639ef0b03175bab58725a"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9631448",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9631448.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "a863c49c3ea575fb3712c94479a50597c6e86e50ce685c86be495d213a618057"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9697774",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9697774.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "6d60e28582a0374cb8770264bc88743079d0e7c59ed6e40c816a7fd2c02b5c88"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9699048",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9699048.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "e31795b7f4aa7896299b274068584fa1b55ee1297de9c76e30ff30607ab2133e"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9726894",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9726894.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "3f2f022634d99daa0dd0896e3facad950e4cf8581dd12209fc47cb79b39ff030"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9732143",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9732143.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "4c0c7a43aac62880776d7b5f6e2d3a5bcb8313577367e6192a3826dcddf72f24"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9867970",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9867970.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "09b89eb9d9f04234a923e60b9bfc8fa2384700e3c7cff0a8e80d2a9c06954754"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9869348",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9869348.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "9c9b9c6510fd06249fbc3710feb464bf0966f21a029698c4ba9099aff68ee2d1"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9884114",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9884114.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "38120ac94d28d12e5b8d6a5c313f520b5e381e062964c7d2d343b093f0817398"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9954386",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9954386.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "8bd0374b7b2bc8ce14a65b00af3ef0003a557d528e818d132d2ac6b7624943f0"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9977795",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9977795.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "774b23929c8fd34b89b0925e4e2333a4ee87ef6a3e409e7bb166ae61e3f7051d"
+  },
+  {
+    "speaker_id": "LA_0099",
+    "filename": "LA_D_9993956",
+    "flac_relpath": "data/asvspoof2019LA/LA/ASVspoof2019_LA_eval/flac\\LA_D_9993956.flac",
+    "system_id": "A07",
+    "label": "spoof",
+    "target": 0,
+    "sha256": "d928e98b9e6099ca55564fab03d66f891b4ffef08e2b6c8a6fbf52b759a36e59"
+  }
+]

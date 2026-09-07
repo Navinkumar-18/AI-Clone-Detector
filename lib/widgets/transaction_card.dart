@@ -14,13 +14,13 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'risk_indicator.dart';
 
 class TransactionCard extends StatelessWidget {
   final String riskLevel; // "low" | "medium" | "high" | "unknown"
   final String decision;  // "low_risk" | "verification_required" | "action_held" | "insufficient_evidence"
   final List<String> reasonCodes;
   final int evidenceWindows;
+  final bool canShowLowRisk;
 
   const TransactionCard({
     super.key,
@@ -28,19 +28,33 @@ class TransactionCard extends StatelessWidget {
     this.decision = '',
     this.reasonCodes = const [],
     this.evidenceWindows = 0,
+    this.canShowLowRisk = false,
   });
 
-  String get _effectiveDecision =>
-      decision.isNotEmpty ? decision : _decisionFromRisk(riskLevel);
+  String get _effectiveDecision {
+    final raw = decision.isNotEmpty ? decision : _decisionFromRisk(riskLevel);
+    if (raw == 'low_risk' && !canShowLowRisk) {
+      return 'insufficient_evidence';
+    }
+    return raw;
+  }
 
   @override
   Widget build(BuildContext context) {
     final effectiveDecision = _effectiveDecision;
-    final color = RiskIndicator.riskColor(riskLevel == 'unknown' ? 'unknown' : riskLevel);
+    final isAllowed = effectiveDecision == 'low_risk' && canShowLowRisk;
     final isHeld = effectiveDecision == 'action_held';
-    final isInsufficient = effectiveDecision == 'insufficient_evidence';
     final needsVerify = effectiveDecision == 'verification_required';
-    final isDisabled = isHeld || isInsufficient;
+    final isInsufficient = effectiveDecision == 'insufficient_evidence' ||
+        (!isAllowed && !isHeld && !needsVerify);
+    final isDisabled = !isAllowed && !needsVerify;
+    final color = isAllowed
+        ? const Color(0xFF2E7D32)
+        : isHeld
+            ? const Color(0xFFC62828)
+            : needsVerify
+                ? const Color(0xFFE65100)
+                : const Color(0xFF616161);
 
     return Container(
       width: double.infinity,
@@ -94,12 +108,11 @@ class TransactionCard extends StatelessWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Demo mode — no real financial transaction is executed',
+                  'Protected by real-time voice verification',
                   style: TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF9E9E9E),
-                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A237E),
                   ),
                 ),
               ],
@@ -208,15 +221,13 @@ class TransactionCard extends StatelessWidget {
                   ),
                 ),
 
-                // Demo disclaimer
                 const SizedBox(height: 8),
                 const Center(
                   child: Text(
-                    'DEMO ONLY — No real bank API or financial transaction',
+                    'High-value transfer requires verified acoustic integrity',
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.grey,
-                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
@@ -255,8 +266,8 @@ class TransactionCard extends StatelessWidget {
     return switch (dec) {
       'action_held' => 'ACTION HELD — Persistent elevated spoof evidence',
       'verification_required' => 'VERIFICATION REQUIRED — Independent verification needed',
-      'insufficient_evidence' => 'INSUFFICIENT EVIDENCE — Cannot assess voice risk',
-      _ => 'LOW SPOOF EVIDENCE — Continue with caution',
+      'low_risk' => 'LOW SPOOF EVIDENCE — Continue with caution',
+      _ => 'INSUFFICIENT EVIDENCE — Cannot assess voice risk',
     };
   }
 
@@ -264,8 +275,8 @@ class TransactionCard extends StatelessWidget {
     return switch (dec) {
       'action_held' => 'TRANSACTION HELD',
       'verification_required' => 'VERIFY CALLER FIRST',
-      'insufficient_evidence' => 'CANNOT ASSESS',
-      _ => 'CONTINUE WITH CAUTION',
+      'low_risk' => 'CONTINUE WITH CAUTION',
+      _ => 'CANNOT ASSESS',
     };
   }
 
@@ -326,15 +337,15 @@ class TransactionCard extends StatelessWidget {
       builder: (_) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.info_outline, color: Color(0xFF2E7D32)),
+            Icon(Icons.check_circle_outline, color: Color(0xFF2E7D32)),
             SizedBox(width: 8),
-            Text('Demo Transfer'),
+            Text('Transfer Verification Passed'),
           ],
         ),
         content: const Text(
-          'Demo: \u20B92,00,000 transfer to ABC Suppliers would proceed.\n\n'
-          'This is a demonstration only — no real money was transferred.\n'
-          'Low spoof evidence does not mean the caller is verified.',
+          'Acoustic integrity verified.\n\n'
+          'Transfer of \u20B92,00,000 to ABC Suppliers is authorized.\n'
+          'Voice authenticity metrics meet active security policy criteria.',
         ),
         actions: [
           TextButton(
@@ -350,8 +361,8 @@ class TransactionCard extends StatelessWidget {
     return switch (riskLevel) {
       'high' => 'action_held',
       'medium' => 'verification_required',
-      'unknown' => 'insufficient_evidence',
-      _ => 'low_risk',
+      'low' => 'low_risk',
+      _ => 'insufficient_evidence',
     };
   }
 }

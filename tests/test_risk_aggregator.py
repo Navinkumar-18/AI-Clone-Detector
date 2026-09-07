@@ -215,3 +215,103 @@ class TestStaleAnalysis:
         state = agg.record_stale_analysis()
         assert state.decision == CallDecision.INSUFFICIENT_EVIDENCE
         assert "analysis_stale" in state.reason_codes
+
+
+class TestSection8RequiredTests:
+    """Explicit tests mandated by Section 8 of live pipeline validation."""
+
+    def test_initial_state_is_not_low_risk(self):
+        agg = RiskAggregator()
+        assert agg.state.decision != CallDecision.LOW_RISK
+        assert agg.state.decision == CallDecision.NO_EVIDENCE
+        assert agg.state.action == CallAction.UNAVAILABLE
+
+    def test_empty_capture_is_insufficient_evidence(self):
+        agg = RiskAggregator()
+        state = agg.update(make_evidence(
+            spoof_score=0.0,
+            speech_detected=False,
+            quality="empty_or_invalid_capture",
+        ))
+        assert state.decision != CallDecision.LOW_RISK
+        assert state.decision == CallDecision.INSUFFICIENT_EVIDENCE
+
+    def test_silence_is_not_low_risk(self):
+        agg = RiskAggregator()
+        state = agg.update(make_evidence(
+            spoof_score=0.0,
+            speech_detected=False,
+            quality="silent",
+        ))
+        assert state.decision != CallDecision.LOW_RISK
+        assert state.decision == CallDecision.INSUFFICIENT_EVIDENCE
+
+    def test_backend_timeout_is_not_low_risk(self):
+        agg = RiskAggregator()
+        # Even if a previous window had low score
+        agg.update(make_evidence(spoof_score=0.05, speech_detected=True, quality="acceptable"))
+        state = agg.record_backend_failure()
+        assert state.decision != CallDecision.LOW_RISK
+        assert state.decision == CallDecision.INSUFFICIENT_EVIDENCE
+        assert not state.backend_fresh
+
+    def test_stale_result_is_not_low_risk(self):
+        agg = RiskAggregator()
+        agg.update(make_evidence(spoof_score=0.05, speech_detected=True, quality="acceptable"))
+        state = agg.record_stale_analysis()
+        assert state.decision != CallDecision.LOW_RISK
+        assert state.decision == CallDecision.INSUFFICIENT_EVIDENCE
+        assert not state.backend_fresh
+
+    def test_one_high_window_requires_verification(self):
+        agg = RiskAggregator(persistent_high_windows=2, high_risk_threshold=0.85)
+        state = agg.update(make_evidence(spoof_score=0.90, label="spoof"))
+        assert state.decision == CallDecision.VERIFICATION_REQUIRED
+        assert state.action == CallAction.VERIFY
+        assert "elevated_spoof_score" in state.reason_codes
+
+    def test_persistent_high_windows_hold_action(self):
+        agg = RiskAggregator(persistent_high_windows=2, high_risk_threshold=0.85)
+        agg.update(make_evidence(spoof_score=0.90, label="spoof"))
+        state = agg.update(make_evidence(spoof_score=0.92, label="spoof"))
+        assert state.decision == CallDecision.ACTION_HELD
+        assert state.action == CallAction.HOLD
+        assert "persistent_high_spoof_score" in state.reason_codes
+
+    def test_silence_after_action_held_preserves_hold(self):
+        agg = RiskAggregator(persistent_high_windows=2, high_risk_threshold=0.85)
+        agg.update(make_evidence(spoof_score=0.90, label="spoof"))
+        agg.update(make_evidence(spoof_score=0.92, label="spoof"))
+        assert agg.state.action == CallAction.HOLD
+
+        # Silence received
+        state = agg.update(make_evidence(spoof_score=0.0, speech_detected=False, quality="silent"))
+        assert state.decision == CallDecision.INSUFFICIENT_EVIDENCE
+        assert state.action == CallAction.HOLD
+        assert "action_remains_held" in state.reason_codes
+
+    def test_recovery_requires_fresh_valid_speech(self):
+        agg = RiskAggregator(
+            persistent_high_windows=2,
+            high_risk_threshold=0.85,
+            cooldown_windows=3,
+            medium_ema_threshold=0.30,
+        )
+        agg.update(make_evidence(spoof_score=0.90, label="spoof"))
+        agg.update(make_evidence(spoof_score=0.92, label="spoof"))
+        assert agg.state.action == CallAction.HOLD
+
+        # Silence cannot recover action held
+        agg.update(make_evidence(spoof_score=0.0, speech_detected=False, quality="silent"))
+        assert agg.state.action == CallAction.HOLD
+
+        # Poor quality audio cannot recover action held
+        agg.update(make_evidence(spoof_score=0.05, speech_detected=True, quality="poor"))
+        assert agg.state.action == CallAction.HOLD
+
+        # Only acceptable, fresh speech with low spoof score advances cooldown
+        for _ in range(5):
+            agg.update(make_evidence(spoof_score=0.05, speech_detected=True, quality="acceptable"))
+
+        assert agg.state.action != CallAction.HOLD
+

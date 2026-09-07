@@ -37,7 +37,14 @@ The prototype is suitable for a controlled SIH demonstration after the claims an
 4. **Attack Algorithm Coverage**:
    - Evaluated against ASVspoof 2019 LA systems (A07-A19). Modern zero-shot voice cloning systems (e.g. XTTS-v2, ElevenLabs, OpenVoice) require dedicated empirical evaluation.
 
+5. **Candidate WavLM-base + MLP Limitations (Score Saturation & Near-Chance Discrimination)**:
+   - Evaluated on the same 250-clip subset (`evaluation/manifest_250.json`).
+   - While WavLM reduced the FPR at threshold 0.30 from 100% to 72% and reduced CPU inference latency by 55% (474 ms vs 1044 ms), its ROC-AUC is 0.4879 (near-chance discrimination).
+   - Scores saturate heavily near the upper sigmoid boundary: over 50% of bona-fide samples and over 75% of spoof samples produce $\text{prob\_fake} = 1.0000$ (median score for both classes is $\approx 1.0000$).
+   - The checkpoint metadata in `models/best_mlp_wavlm_base.pt` records an internal training EER of 53.5%, indicating that this research checkpoint was trained on an exploratory subset. It is preserved for experimentation and configuration-driven switching, but is not suitable for production default replacement without retraining.
+
 ---
+
 
 ## 3. System & Telephony Limitations
 
@@ -56,6 +63,11 @@ The prototype is suitable for a controlled SIH demonstration after the claims an
 
 5. **Self-Signed TLS**:
    - Local self-signed certificates are for development-only testing. Public deployment requires new trusted certificate/key material.
+
+6. **Acoustic Loudspeaker & Speakerphone Transducer Degradation**:
+   - Smartphone loudspeaker playback introduces acoustic bandpass filtering (300 Hz – 3500 Hz), transducer soft-clipping, and ambient room noise.
+   - Pretrained full-bandwidth acoustic models (such as `wav2vec2`) experience score attenuation when AI audio is played through low-cost micro-speakers (score drops from 0.484 to 0.047).
+   - While client fail-closed guards prevent silence or unverified states from turning green, robust over-the-air detection requires backends trained with acoustic augmentation (e.g. `wavlm_mlp`). See `docs/LIVE_PATH_COMPARISON.md` and `docs/LIVE_CAPTURE_DEBUG.md`.
 
 ---
 

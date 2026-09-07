@@ -7,15 +7,47 @@
 # constants are permitted elsewhere.
 #
 # Version: threshold-v2
-# Last reviewed: 2026-09-06
+# Last reviewed: 2026-09-07
 # =============================================================================
 
 # ---------------------------------------------------------------------------
-# Model
+# Active Model Selection ('wav2vec2' or 'wavlm_mlp')
+# ---------------------------------------------------------------------------
+active_model: wav2vec2
+
+# ---------------------------------------------------------------------------
+# Model Backends Registry
+# ---------------------------------------------------------------------------
+models:
+  wav2vec2:
+    backend: wav2vec2
+    model_id: "garystafford/wav2vec2-deepfake-voice-detector"
+    revision: "c66306024a7ede0be291e9c4558b37634782dc4e"
+    version: "voiceguard-v1"
+    score_type: "uncalibrated_softmax_score"
+    thresholds:
+      version: "threshold-v2"
+      spoof_threshold: 0.30
+      high_risk_threshold: 0.85
+  wavlm_mlp:
+    backend: wavlm_mlp
+    model_id: "microsoft/wavlm-base"
+    revision: "efa81aae7ff777e464159e0f877d54eac5b84f81"
+    version: "research-mlp-v1"
+    checkpoint_path: "models/best_mlp_wavlm_base.pt"
+    checkpoint_sha256: "f7e518d57e8f96ec6c5c34b8ebb2ecd78c91ba67e7c260287a367aeb53816d2f"
+    score_type: "uncalibrated_sigmoid_score"
+    thresholds:
+      version: "wavlm-v1"
+      spoof_threshold: 0.30
+      high_risk_threshold: 0.85
+
+# ---------------------------------------------------------------------------
+# Legacy Model Block (for backward-compatibility)
 # ---------------------------------------------------------------------------
 model:
   name: "garystafford/wav2vec2-deepfake-voice-detector"
-  revision: "main"
+  revision: "c66306024a7ede0be291e9c4558b37634782dc4e"
   version: "voiceguard-v1"
 
 # ---------------------------------------------------------------------------
@@ -35,20 +67,7 @@ audio:
     - ".webm"
 
 # ---------------------------------------------------------------------------
-# Thresholds
-# ---------------------------------------------------------------------------
-# RATIONALE:
-# The committed threshold report (threshold_report.txt) records a 100%
-# false-positive rate at the reviewed threshold (0.40). A complete threshold
-# sweep must be regenerated before making any claim about all thresholds.
-#
-# The spoof_threshold determines when prob_fake is classified as spoof.
-# The high_risk_threshold determines when a spoof classification is
-# considered high-confidence enough to warrant blocking actions.
-#
-# These thresholds are chosen conservatively for a DEMO prototype.
-# They must be validated against a proper evaluation before any
-# production claim.
+# Default / Fallback Thresholds
 # ---------------------------------------------------------------------------
 thresholds:
   version: "threshold-v2"

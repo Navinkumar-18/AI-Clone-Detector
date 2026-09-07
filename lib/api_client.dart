@@ -30,8 +30,13 @@ class PredictResult {
   final bool speechDetected;
   final List<String> reasonCodes;
   final String modelVersion;
+  final String modelBackend;
+  final String scoreType;
+  final String thresholdVersion;
+  final bool modelLoaded;     // fail-closed: default is false
+  final DateTime receivedAt;
 
-  const PredictResult({
+  PredictResult({
     required this.decision,
     required this.action,
     required this.label,
@@ -42,7 +47,12 @@ class PredictResult {
     this.speechDetected = true,
     this.reasonCodes = const [],
     this.modelVersion = '',
-  });
+    this.modelBackend = '',
+    this.scoreType = '',
+    this.thresholdVersion = '',
+    this.modelLoaded = false,
+    DateTime? receivedAt,
+  }) : receivedAt = receivedAt ?? DateTime.now();
 
   factory PredictResult.fromJson(Map<String, dynamic> json) {
     List<String> reasons = [];
@@ -58,9 +68,14 @@ class PredictResult {
       spoofScore: (json['spoof_score'] as num?)?.toDouble() ?? 0.0,
       riskLevel: json['risk_level'] as String? ?? 'unknown',
       riskPercentage: (json['risk_percentage'] as num?)?.toDouble() ?? 0.0,
-      speechDetected: json['speech_detected'] as bool? ?? true,
+      speechDetected: json['speech_detected'] as bool? ?? false,
       reasonCodes: reasons,
       modelVersion: json['model_version'] as String? ?? '',
+      modelBackend: json['model_backend'] as String? ?? '',
+      scoreType: json['score_type'] as String? ?? '',
+      thresholdVersion: json['threshold_version'] as String? ?? '',
+      modelLoaded: json['model_loaded'] as bool? ?? false,
+      receivedAt: DateTime.now(),
     );
   }
 
@@ -73,6 +88,16 @@ class PredictResult {
       _ => 'insufficient_evidence',
     };
   }
+
+  bool isFresh([int maxAgeSeconds = 30]) =>
+      DateTime.now().difference(receivedAt).inSeconds < maxAgeSeconds;
+
+  bool get canShowLowRisk =>
+      decision == 'low_risk' &&
+      speechDetected == true &&
+      modelLoaded == true &&
+      isFresh() &&
+      !reasonCodes.any(LiveAnalysisResult.blockingReasonCodes.contains);
 }
 
 // ---------------------------------------------------------------------------
@@ -82,6 +107,8 @@ class PredictResult {
 class BackendReadiness {
   final String status;       // "ready" | "not_ready"
   final bool modelLoaded;
+  final String modelBackend;
+  final String scoreType;
   final String modelVersion;
   final String thresholdVersion;
   final String device;
@@ -90,6 +117,8 @@ class BackendReadiness {
   const BackendReadiness({
     required this.status,
     required this.modelLoaded,
+    this.modelBackend = '',
+    this.scoreType = '',
     this.modelVersion = '',
     this.thresholdVersion = '',
     this.device = '',
@@ -102,6 +131,8 @@ class BackendReadiness {
     return BackendReadiness(
       status: json['status'] as String? ?? 'not_ready',
       modelLoaded: json['model_loaded'] as bool? ?? false,
+      modelBackend: json['model_backend'] as String? ?? '',
+      scoreType: json['score_type'] as String? ?? '',
       modelVersion: json['model_version'] as String? ?? '',
       thresholdVersion: json['threshold_version'] as String? ?? '',
       device: json['device'] as String? ?? '',
@@ -147,12 +178,15 @@ class VoiceGuardApiClient {
   /// No global certificate override affects unrelated HTTP traffic.
   static http.Client get _client {
     if (_customClient != null) return _customClient!;
-    if (kDemoMode && !kReleaseMode) {
+    if (!kReleaseMode || kDemoMode) {
       final ioHttpClient = HttpClient()
         ..badCertificateCallback = (cert, host, port) {
           try {
             final backendUri = Uri.parse(BackendConfig.baseUrl);
-            return host == backendUri.host;
+            final targetHost = backendUri.host;
+            final isLoopback = (host == '127.0.0.1' || host == 'localhost' || host == '10.0.2.2');
+            final isTargetLoopback = (targetHost == '127.0.0.1' || targetHost == 'localhost' || targetHost == '10.0.2.2');
+            return host == targetHost || (isLoopback && isTargetLoopback);
           } catch (_) {
             return false;
           }

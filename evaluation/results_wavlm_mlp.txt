@@ -1,0 +1,27 @@
+Evaluation Report: wavlm_mlp
+Model ID: microsoft/wavlm-base
+Revision: efa81aae7ff777e464159e0f877d54eac5b84f81
+Score Type: uncalibrated_sigmoid_score
+Clips: 250 (50 bonafide, 200 spoof)
+
+Metrics at Threshold 0.30:
+  FPR (False Positive Rate): 72.0%
+  FNR (False Negative Rate): 18.0%
+  Accuracy: 71.2%
+  Balanced Accuracy: 55.0%
+  F1 Score: 0.8200
+  Precision: 0.8200
+  Recall: 0.8200
+
+Discrimination:
+  ROC-AUC: 0.4879
+  PR-AUC: 0.7903
+  EER: 52.50% at threshold 1.0000
+
+Score Distributions:
+  Bona-fide (N=50) : min=0.0003, mean=0.7207, median=1.0000, max=1.0000
+  Spoof     (N=200): min=0.0004, mean=0.8201, median=1.0000, max=1.0000
+
+Latency:
+  Mean: 473.76 ms
+  P95 : 836.00 ms

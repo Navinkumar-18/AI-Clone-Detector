@@ -33,6 +33,7 @@ import sys
 import tempfile
 import time
 import uuid
+import json
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from concurrent.futures import ThreadPoolExecutor
@@ -47,6 +48,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from voiceguard_config import load_config, VoiceGuardConfig
+from voiceguard.model_backends import create_backend, ModelBackend, ModelLoadError
 from audio_quality import analyze_audio_quality, AudioQualityReport
 
 # ---------------------------------------------------------------------------
@@ -65,8 +67,8 @@ log = logging.getLogger(__name__)
 cfg: VoiceGuardConfig = load_config()
 
 # Log config summary (no secrets)
-log.info("Config loaded | model=%s | threshold=%s | demo_mode=%s",
-         cfg.model.name, cfg.thresholds.spoof_threshold, cfg.security.demo_mode)
+log.info("Config loaded | active_model=%s | model=%s | threshold=%s | demo_mode=%s",
+         cfg.active_model, cfg.model.name, cfg.thresholds.spoof_threshold, cfg.security.demo_mode)
 
 # ---------------------------------------------------------------------------
 # Pydantic response models
@@ -101,7 +103,10 @@ class DetectionResponse(BaseModel):
     evidence: EvidenceResponse = Field(default_factory=EvidenceResponse)
     reason_codes: List[str] = Field(default_factory=list)
     model_version: str = ""
+    model_backend: str = ""
+    score_type: str = ""
     threshold_version: str = ""
+    model_loaded: bool = Field(default=True, description="True if inference model was actively loaded")
     request_id: str = ""
 
 
@@ -113,6 +118,8 @@ class HealthResponse(BaseModel):
 class ReadinessResponse(BaseModel):
     status: str = "not_ready"
     model_loaded: bool = False
+    model_backend: str = ""
+    score_type: str = ""
     model_version: str = ""
     threshold_version: str = ""
     device: str = ""
@@ -123,10 +130,12 @@ class ReadinessResponse(BaseModel):
 # Global model state (populated in lifespan)
 # ---------------------------------------------------------------------------
 _state: dict[str, Any] = {
+    "backend": None,
     "model": None,
     "feature_extractor": None,
     "device": None,
     "model_loaded": False,
+    "load_error": None,
 }
 
 # Thread pool for non-blocking inference
@@ -144,24 +153,34 @@ _rate_limit_store: dict[str, list[float]] = defaultdict(list)
 async def lifespan(app: FastAPI):
     global _inference_executor, _inference_semaphore
 
-    log.info("Loading model '%s' ...", cfg.model.name)
+    log.info("Loading active model backend '%s' ...", cfg.active_model)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    log.info("Device: %s", device)
-
-    from transformers import AutoFeatureExtractor, AutoModelForAudioClassification
-
-    feature_extractor = AutoFeatureExtractor.from_pretrained(
-        cfg.model.name, revision=cfg.model.revision
-    )
-    model = AutoModelForAudioClassification.from_pretrained(
-        cfg.model.name, revision=cfg.model.revision
-    )
-    model.to(device).eval()
-
-    _state["model"] = model
-    _state["feature_extractor"] = feature_extractor
     _state["device"] = device
-    _state["model_loaded"] = True
+
+    backend_cfg = cfg.active_backend
+    try:
+        model_backend = create_backend(
+            backend_name=backend_cfg.backend,
+            model_id=backend_cfg.model_id,
+            revision=backend_cfg.revision,
+            device=device,
+            score_type=backend_cfg.score_type,
+            checkpoint_path=backend_cfg.checkpoint_path,
+        )
+        model_backend.load()
+        _state["backend"] = model_backend
+        _state["model"] = getattr(model_backend, "model", getattr(model_backend, "backbone", None))
+        _state["feature_extractor"] = getattr(model_backend, "feature_extractor", None)
+        _state["model_loaded"] = True
+        _state["load_error"] = None
+        log.info("Model backend '%s' loaded successfully.", backend_cfg.backend)
+    except Exception as exc:
+        _state["backend"] = None
+        _state["model"] = None
+        _state["feature_extractor"] = None
+        _state["model_loaded"] = False
+        _state["load_error"] = str(exc)
+        log.error("Failed to load active model backend '%s': %s", backend_cfg.backend, exc)
 
     _inference_executor = ThreadPoolExecutor(
         max_workers=cfg.server.maximum_concurrency,
@@ -169,11 +188,10 @@ async def lifespan(app: FastAPI):
     )
     _inference_semaphore = asyncio.Semaphore(cfg.server.maximum_concurrency)
 
-    log.info("Model loaded successfully. Labels: %s", model.config.id2label)
-
     yield  # -- server is running --
 
-    log.info("Shutting down - releasing model.")
+    log.info("Shutting down - releasing model backend.")
+    _state["backend"] = None
     _state["model"] = None
     _state["feature_extractor"] = None
     _state["model_loaded"] = False
@@ -246,7 +264,7 @@ async def add_request_id_and_rate_limit(request: Request, call_next):
 
 def _run_inference_sync(audio: np.ndarray) -> dict:
     """
-    Run the wav2vec2 deepfake classifier on a 16kHz mono audio array.
+    Run the active deepfake classifier on a 16kHz mono audio array.
     This runs SYNCHRONOUSLY and must be called from a thread pool.
 
     Returns:
@@ -256,26 +274,38 @@ def _run_inference_sync(audio: np.ndarray) -> dict:
           "risk_level": "low" | "medium" | "high",
           "spoof_score": float 0.0-1.0,
           "prob_real": float 0.0-1.0,
+          "model_backend": str,
+          "score_type": str,
         }
     """
-    model = _state["model"]
-    feature_extractor = _state["feature_extractor"]
-    device: str = _state["device"]
-
-    inputs = feature_extractor(
-        audio,
-        sampling_rate=cfg.audio.sample_rate,
-        return_tensors="pt",
-        padding=True,
-    )
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-
-    with torch.no_grad():
-        logits = model(**inputs).logits
-        probs = torch.softmax(logits, dim=-1)[0]
-
-    prob_real: float = probs[0].item()
-    prob_fake: float = probs[1].item()
+    backend_obj: Optional[ModelBackend] = _state.get("backend")
+    if backend_obj is not None and backend_obj.is_loaded():
+        pred = backend_obj.predict(audio, sample_rate=cfg.audio.sample_rate)
+        prob_real = pred.prob_real
+        prob_fake = pred.prob_fake
+        backend_name = pred.backend_name
+        score_type = pred.score_type
+    elif _state.get("model") is not None and _state.get("feature_extractor") is not None:
+        # Fallback for unit test fixtures mocking model/feature_extractor directly
+        model = _state["model"]
+        feature_extractor = _state["feature_extractor"]
+        device = _state.get("device", "cpu")
+        inputs = feature_extractor(
+            audio,
+            sampling_rate=cfg.audio.sample_rate,
+            return_tensors="pt",
+            padding=True,
+        )
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        with torch.no_grad():
+            logits = model(**inputs).logits
+            probs = torch.softmax(logits, dim=-1)[0]
+        prob_real = float(probs[0].item())
+        prob_fake = float(probs[1].item())
+        backend_name = cfg.active_model
+        score_type = cfg.active_backend.score_type
+    else:
+        raise RuntimeError("Model backend is not loaded.")
 
     # Decision using configured threshold
     is_fake = prob_fake >= cfg.thresholds.spoof_threshold
@@ -296,6 +326,8 @@ def _run_inference_sync(audio: np.ndarray) -> dict:
         "risk_level": risk_level,
         "spoof_score": round(prob_fake, 6),
         "prob_real": round(prob_real, 6),
+        "model_backend": backend_name,
+        "score_type": score_type,
     }
 
 
@@ -348,12 +380,14 @@ def _make_insufficient_evidence_response(
     reason_codes: List[str],
     request_id: str,
     audio_quality: Optional[AudioQualityReport] = None,
+    action: str = "verify",
+    model_loaded: bool = True,
 ) -> DetectionResponse:
     """Create an INSUFFICIENT_EVIDENCE response."""
     aq = audio_quality.to_dict() if audio_quality else {}
     return DetectionResponse(
         decision="insufficient_evidence",
-        action="verify",
+        action=action,
         label="unknown",
         spoof_score=0.0,
         confidence=0.0,
@@ -364,7 +398,10 @@ def _make_insufficient_evidence_response(
         evidence=EvidenceResponse(),
         reason_codes=reason_codes,
         model_version=cfg.model.version,
+        model_backend=cfg.active_model,
+        score_type=cfg.active_backend.score_type,
         threshold_version=cfg.thresholds.version,
+        model_loaded=model_loaded,
         request_id=request_id,
     )
 
@@ -390,8 +427,20 @@ async def predict(request: Request, file: UploadFile = File(...)):
     request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
 
     if not _state["model_loaded"]:
-        return _make_insufficient_evidence_response(
-            ["model_unavailable"], request_id
+        raise HTTPException(
+            status_code=503,
+            detail="Model backend is unavailable. Check readiness at /ready.",
+        )
+
+    if not _state["model_loaded"]:
+        return JSONResponse(
+            status_code=503,
+            content=_make_insufficient_evidence_response(
+                ["model_unavailable"],
+                request_id,
+                action="unavailable",
+                model_loaded=False,
+            ).model_dump(),
         )
 
     # --- validate file type ---
@@ -423,7 +472,10 @@ async def predict(request: Request, file: UploadFile = File(...)):
 
         if audio is None or len(audio) == 0:
             return _make_insufficient_evidence_response(
-                ["empty_audio"], request_id
+                ["empty_or_invalid_capture"],
+                request_id,
+                action="unavailable",
+                model_loaded=_state["model_loaded"],
             )
 
         # --- Audio quality check (BEFORE inference) ---
@@ -444,6 +496,8 @@ async def predict(request: Request, file: UploadFile = File(...)):
                 quality.reason_codes or [f"audio_quality_{quality.status}"],
                 request_id,
                 quality,
+                action="verify",
+                model_loaded=_state["model_loaded"],
             )
 
         # --- Run inference off the event loop ---
@@ -487,7 +541,10 @@ async def predict(request: Request, file: UploadFile = File(...)):
         evidence=EvidenceResponse(),
         reason_codes=(["elevated_spoof_score"] if result["label"] == "spoof" else []),
         model_version=cfg.model.version,
+        model_backend=result.get("model_backend", cfg.active_model),
+        score_type=result.get("score_type", cfg.active_backend.score_type),
         threshold_version=cfg.thresholds.version,
+        model_loaded=_state["model_loaded"],
         request_id=request_id,
     )
 
@@ -501,21 +558,34 @@ async def health():
 @app.get("/ready", response_model=ReadinessResponse)
 async def ready():
     """Readiness check — is the model loaded and ready for inference?"""
+    backend_obj = _state.get("backend")
+    backend_name = backend_obj.backend_name if backend_obj else cfg.active_model
+    score_type = backend_obj.score_type if backend_obj else cfg.active_backend.score_type
+
     if _state["model_loaded"]:
         return ReadinessResponse(
             status="ready",
             model_loaded=True,
+            model_backend=backend_name,
+            score_type=score_type,
             model_version=cfg.model.version,
             threshold_version=cfg.thresholds.version,
             device=_state.get("device", "unknown"),
             demo_mode=cfg.security.demo_mode,
         )
-    return ReadinessResponse(
-        status="not_ready",
-        model_loaded=False,
-        model_version=cfg.model.version,
-        device="",
-        demo_mode=cfg.security.demo_mode,
+    return JSONResponse(
+        status_code=503,
+        content={
+            "status": "not_ready",
+            "model_loaded": False,
+            "model_backend": backend_name,
+            "score_type": score_type,
+            "model_version": cfg.model.version,
+            "threshold_version": cfg.thresholds.version,
+            "device": "",
+            "demo_mode": cfg.security.demo_mode,
+            "detail": _state.get("load_error") or "Model backend is not loaded or failed initialization.",
+        },
     )
 
 
@@ -534,8 +604,14 @@ async def live_analyze(request: Request, file: UploadFile = File(...)):
     request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
 
     if not _state["model_loaded"]:
-        return _make_insufficient_evidence_response(
-            ["model_unavailable"], request_id
+        return JSONResponse(
+            status_code=503,
+            content=_make_insufficient_evidence_response(
+                ["model_unavailable"],
+                request_id,
+                action="unavailable",
+                model_loaded=False,
+            ).model_dump(),
         )
 
     # --- read with size limit ---
@@ -558,7 +634,10 @@ async def live_analyze(request: Request, file: UploadFile = File(...)):
 
         if audio is None or len(audio) == 0:
             return _make_insufficient_evidence_response(
-                ["empty_audio"], request_id
+                ["empty_or_invalid_capture"],
+                request_id,
+                action="unavailable",
+                model_loaded=_state["model_loaded"],
             )
 
         # --- Audio quality check ---
@@ -579,6 +658,8 @@ async def live_analyze(request: Request, file: UploadFile = File(...)):
                 quality.reason_codes or [f"audio_quality_{quality.status}"],
                 request_id,
                 quality,
+                action="verify",
+                model_loaded=_state["model_loaded"],
             )
 
         # --- Run inference off the event loop ---
@@ -609,6 +690,30 @@ async def live_analyze(request: Request, file: UploadFile = File(...)):
     log.info("LIVE | request_id=%s | label=%s | spoof_score=%.4f | risk=%s",
              request_id, result["label"], result["spoof_score"], result["risk_level"])
 
+    # Dev-mode sanitized event logging (never logs raw audio or PII)
+    if cfg.security.demo_mode or os.environ.get("VOICEGUARD_DEV_MODE", "").strip() == "1" or not os.environ.get("VOICEGUARD_PROD"):
+        log.info("LIVE_EVENT | %s", json.dumps({
+            "request_id": request_id,
+            "chunk_id": str(uuid.uuid4())[:8],
+            "chunk_duration_ms": round(quality.duration_seconds * 1000, 1),
+            "sample_rate": cfg.audio.sample_rate,
+            "channels": 1,
+            "bytes": len(contents),
+            "decision": decision,
+            "action": action,
+            "label": result["label"],
+            "spoof_score": result["spoof_score"],
+            "score_type": result.get("score_type", cfg.active_backend.score_type),
+            "speech_detected": True,
+            "audio_quality_status": quality.status,
+            "rms": round(quality.rms, 6),
+            "voiced_ratio": round(quality.voiced_ratio, 4),
+            "reason_codes": (["elevated_spoof_score"] if result["label"] == "spoof" else []),
+            "model_backend": result.get("model_backend", cfg.active_model),
+            "model_loaded": _state["model_loaded"],
+            "response_age_ms": 0,
+        }))
+
     return DetectionResponse(
         decision=decision,
         action=action,
@@ -622,7 +727,10 @@ async def live_analyze(request: Request, file: UploadFile = File(...)):
         evidence=EvidenceResponse(),
         reason_codes=(["elevated_spoof_score"] if result["label"] == "spoof" else []),
         model_version=cfg.model.version,
+        model_backend=result.get("model_backend", cfg.active_model),
+        score_type=result.get("score_type", cfg.active_backend.score_type),
         threshold_version=cfg.thresholds.version,
+        model_loaded=_state["model_loaded"],
         request_id=request_id,
     )
 

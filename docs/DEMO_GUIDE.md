@@ -90,9 +90,11 @@ flutter run -d windows --dart-define=DEMO_MODE=true
    - Status: `ALLOW WITH CAUTION`.
 5. Cloned Voice Demonstration:
    - Play a prepared synthetic or converted-speech sample through the supported microphone/speakerphone demonstration path.
+   - *Note on Speakerphone Testing*: Standard mobile speakers filter out frequencies above 3.5 kHz, which can drop raw scores on `wav2vec2`. For physical loudspeaker testing, run the backend with `VOICEGUARD_ACTIVE_MODEL=wavlm_mlp` for acoustic robustness, or place the mic in close proximity (see `docs/LIVE_PATH_COMPARISON.md`).
    - Window 1: Spoof score spikes $\ge 0.85$ $\rightarrow$ Status: `VERIFICATION REQUIRED`.
    - Window 2: Persistent elevated evidence ($N=2$) $\rightarrow$ Status: **`ACTION HELD`**.
    - The simulated transaction card ("₹2,00,000 to ABC Suppliers") disables immediately with label: **`TRANSACTION HELD`**.
+   - Expand the **`LIVE DIAGNOSTICS (DEV MODE)`** panel to demonstrate live stream format (16kHz mono PCM), chunk RMS, model loaded readiness, freshness, and the active `canShowLowRisk` gate to the judges.
    - Prominent disclaimer: **"Demo mode — no real financial transaction is executed."**
 6. Step-Up Challenge Demonstration:
    - Tap **Verify Caller First**: VoiceGuard presents simulated step-up verification options, such as confirming through the official app, calling a saved number, or contacting a trusted person. No real financial or telephony service is invoked.

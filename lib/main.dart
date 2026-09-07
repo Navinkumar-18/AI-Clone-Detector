@@ -51,7 +51,7 @@ class VoiceGuardApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: const LiveCallScreen(),
     );
   }
 }
@@ -271,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen>
   void _openSettingsDialog() {
     showDialog<void>(
       context: context,
-      builder: (_) => const _SettingsDialog(),
+      builder: (_) => const SettingsDialog(),
     );
   }
 
@@ -521,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildResultView() {
     final r = _result!;
     final color = _riskColor(r.riskLevel);
-    final pct = (r.confidence * 100).toStringAsFixed(1);
+    final pct = (r.spoofScore * 100).toStringAsFixed(1);
     final category = _riskCategory(r.riskLevel);
     final isSpoof = r.label == 'spoof';
 
@@ -704,15 +704,17 @@ class _HomeScreenState extends State<HomeScreen>
     return switch (level) {
       'high' => const Color(0xFFC62828),   // dark red
       'medium' => const Color(0xFFE65100), // deep orange
-      _ => const Color(0xFF2E7D32),        // dark green (low / unknown)
+      'unknown' => Colors.blueGrey,        // grey for cannot assess
+      _ => const Color(0xFF2E7D32),        // dark green (low risk)
     };
   }
 
   /// Maps risk_level to a human-readable category for UI display.
   String _riskCategory(String level) {
     return switch (level) {
-      'high' => 'Critical',
+      'high' => 'Critical Risk',
       'medium' => 'Medium Risk',
+      'unknown' => 'Cannot Assess (Poor Audio)',
       _ => 'Low Risk',
     };
   }
@@ -722,14 +724,14 @@ class _HomeScreenState extends State<HomeScreen>
 // Settings Dialog — configurable server URL
 // ---------------------------------------------------------------------------
 
-class _SettingsDialog extends StatefulWidget {
-  const _SettingsDialog();
+class SettingsDialog extends StatefulWidget {
+  const SettingsDialog({super.key});
 
   @override
-  State<_SettingsDialog> createState() => _SettingsDialogState();
+  State<SettingsDialog> createState() => _SettingsDialogState();
 }
 
-class _SettingsDialogState extends State<_SettingsDialog> {
+class _SettingsDialogState extends State<SettingsDialog> {
   late TextEditingController _urlController;
   _ConnectionStatus _status = _ConnectionStatus.idle;
 

@@ -1,0 +1,27 @@
+Evaluation Report: wav2vec2
+Model ID: garystafford/wav2vec2-deepfake-voice-detector
+Revision: c66306024a7ede0be291e9c4558b37634782dc4e
+Score Type: uncalibrated_softmax_score
+Clips: 250 (50 bonafide, 200 spoof)
+
+Metrics at Threshold 0.30:
+  FPR (False Positive Rate): 100.0%
+  FNR (False Negative Rate): 22.5%
+  Accuracy: 62.0%
+  Balanced Accuracy: 38.8%
+  F1 Score: 0.7654
+  Precision: 0.7561
+  Recall: 0.7750
+
+Discrimination:
+  ROC-AUC: 0.3087
+  PR-AUC: 0.7349
+  EER: 61.50% at threshold 0.8790
+
+Score Distributions:
+  Bona-fide (N=50) : min=0.8107, mean=0.9080, median=0.8976, max=0.9952
+  Spoof     (N=200): min=0.0316, mean=0.7050, median=0.8620, max=0.9953
+
+Latency:
+  Mean: 1044.24 ms
+  P95 : 1787.56 ms

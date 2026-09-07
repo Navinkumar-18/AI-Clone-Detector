@@ -43,11 +43,17 @@ def client():
 def mock_model():
     """Mock model state in backend without loading actual HuggingFace weights."""
     original_loaded = _state["model_loaded"]
+    original_backend = _state.get("backend")
     original_model = _state["model"]
     original_fe = _state["feature_extractor"]
     original_device = _state["device"]
 
     _state["model_loaded"] = True
+    mock_backend = mock.MagicMock()
+    mock_backend.is_loaded.return_value = True
+    mock_backend.backend_name = "wav2vec2"
+    mock_backend.score_type = "uncalibrated_softmax_score"
+    _state["backend"] = mock_backend
     _state["model"] = mock.MagicMock()
     _state["feature_extractor"] = mock.MagicMock()
     _state["device"] = "cpu"
@@ -60,6 +66,7 @@ def mock_model():
     yield
 
     _state["model_loaded"] = original_loaded
+    _state["backend"] = original_backend
     _state["model"] = original_model
     _state["feature_extractor"] = original_fe
     _state["device"] = original_device
@@ -76,7 +83,7 @@ class TestHealthAndReadiness:
     def test_ready_endpoint_not_ready(self, client):
         _state["model_loaded"] = False
         resp = client.get("/ready")
-        assert resp.status_code == 200
+        assert resp.status_code == 503
         data = resp.json()
         assert data["status"] == "not_ready"
         assert data["model_loaded"] is False
@@ -91,15 +98,13 @@ class TestHealthAndReadiness:
 
 
 class TestPredictEndpoint:
-    def test_predict_model_not_ready_returns_insufficient_evidence(self, client, normal_wav):
+    def test_predict_model_not_ready_returns_503(self, client, normal_wav):
         _state["model_loaded"] = False
         files = {"file": ("test.wav", io.BytesIO(normal_wav), "audio/wav")}
         resp = client.post("/predict", files=files)
-        assert resp.status_code == 200
+        assert resp.status_code == 503
         data = resp.json()
-        assert data["decision"] == "insufficient_evidence"
-        assert data["action"] == "verify"
-        assert "model_unavailable" in data["reason_codes"]
+        assert "unavailable" in data["detail"].lower()
 
     def test_predict_invalid_extension_415(self, client):
         files = {"file": ("malicious.exe", io.BytesIO(b"MZ..."), "application/octet-stream")}
