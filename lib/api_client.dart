@@ -148,7 +148,8 @@ class BackendReadiness {
 /// Backend returned a non-200 status code.
 class BackendErrorException implements Exception {
   final int statusCode;
-  const BackendErrorException(this.statusCode);
+  final String detail;
+  const BackendErrorException(this.statusCode, [this.detail = '']);
 }
 
 /// Network-level failure: connection refused, timeout, no route to host, etc.
@@ -159,7 +160,8 @@ class BackendUnreachableException implements Exception {
 
 /// Server rejected the file (HTTP 415 / 422) — unsupported or corrupted audio.
 class UnsupportedFileException implements Exception {
-  const UnsupportedFileException();
+  final String? message;
+  const UnsupportedFileException([this.message]);
 }
 
 // ---------------------------------------------------------------------------
@@ -208,12 +210,20 @@ class VoiceGuardApiClient {
   ///
   /// Throws [BackendUnreachableException], [UnsupportedFileException], or
   /// [BackendErrorException] on failure — never a raw socket exception.
-  static Future<PredictResult> predict(String filePath) async {
+  static Future<PredictResult> predict(String filePath, {String? originalFilename}) async {
     final uri = Uri.parse('${BackendConfig.baseUrl}/predict');
     final request = http.MultipartRequest('POST', uri);
 
+    final filename = (originalFilename != null && originalFilename.isNotEmpty)
+        ? originalFilename
+        : filePath.split(Platform.pathSeparator).last;
+
     try {
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        filePath,
+        filename: filename,
+      ));
     } on FileSystemException {
       throw const UnsupportedFileException();
     }
@@ -229,26 +239,41 @@ class VoiceGuardApiClient {
       throw BackendUnreachableException(e.toString());
     }
 
-    final response = await http.Response.fromStream(streamedResponse);
+    http.Response response;
+    try {
+      response = await http.Response.fromStream(streamedResponse);
+    } catch (e) {
+      throw BackendUnreachableException('Failed to read server response: $e');
+    }
 
     if (response.statusCode == 413) {
-      throw const UnsupportedFileException(); // Upload too large
+      throw const UnsupportedFileException('Audio file exceeds the maximum allowed size (10 MB).');
     }
     if (response.statusCode == 415 || response.statusCode == 422) {
-      throw const UnsupportedFileException();
+      String detail = '';
+      try {
+        final errJson = jsonDecode(response.body) as Map<String, dynamic>;
+        detail = errJson['detail']?.toString() ?? '';
+      } catch (_) {}
+      throw UnsupportedFileException(detail.isNotEmpty ? detail : null);
     }
     if (response.statusCode == 429) {
-      throw const BackendErrorException(429); // Rate limited
+      throw const BackendErrorException(429, 'Rate limit exceeded. Please wait a moment.');
     }
     if (response.statusCode != 200) {
-      throw BackendErrorException(response.statusCode);
+      String detail = '';
+      try {
+        final errJson = jsonDecode(response.body) as Map<String, dynamic>;
+        detail = errJson['detail']?.toString() ?? '';
+      } catch (_) {}
+      throw BackendErrorException(response.statusCode, detail);
     }
 
     try {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       return PredictResult.fromJson(json);
     } catch (_) {
-      throw const BackendErrorException(200);
+      throw const BackendErrorException(200, 'Invalid response format from server.');
     }
   }
 

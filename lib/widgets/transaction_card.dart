@@ -59,19 +59,19 @@ class TransactionCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF161B22),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDisabled
-              ? Colors.grey.withValues(alpha: 0.3)
+              ? Colors.white.withValues(alpha: 0.1)
               : isHeld
-                  ? const Color(0xFFC62828).withValues(alpha: 0.3)
-                  : Colors.grey.withValues(alpha: 0.2),
+                  ? const Color(0xFFC62828).withValues(alpha: 0.4)
+                  : Colors.white.withValues(alpha: 0.15),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -85,7 +85,7 @@ class TransactionCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1A237E).withValues(alpha: 0.05),
+              color: const Color(0xFF1F2937),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
             ),
             child: const Column(
@@ -93,14 +93,14 @@ class TransactionCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.account_balance, size: 18, color: Color(0xFF1A237E)),
+                    Icon(Icons.account_balance, size: 18, color: Color(0xFF58A6FF)),
                     SizedBox(width: 8),
                     Text(
                       'SENSITIVE TRANSACTION',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A237E),
+                        color: Colors.white,
                         letterSpacing: 1,
                       ),
                     ),
@@ -112,7 +112,7 @@ class TransactionCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A237E),
+                    color: Colors.white54,
                   ),
                 ),
               ],
@@ -198,13 +198,13 @@ class TransactionCard extends StatelessWidget {
                             : () => _showSuccessDialog(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isDisabled
-                          ? Colors.grey.shade300
+                          ? Colors.white10
                           : needsVerify
                               ? const Color(0xFFE65100)
                               : const Color(0xFF2E7D32),
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade300,
-                      disabledForegroundColor: Colors.grey.shade500,
+                      disabledBackgroundColor: Colors.white10,
+                      disabledForegroundColor: Colors.white38,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -222,12 +222,12 @@ class TransactionCard extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 8),
-                const Center(
+                Center(
                   child: Text(
                     'High-value transfer requires verified acoustic integrity',
                     style: TextStyle(
                       fontSize: 10,
-                      color: Colors.grey,
+                      color: Colors.white.withValues(alpha: 0.4),
                     ),
                   ),
                 ),
@@ -245,9 +245,9 @@ class TransactionCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: Colors.black54,
+            color: Colors.white.withValues(alpha: 0.5),
           ),
         ),
         Text(
@@ -255,7 +255,7 @@ class TransactionCard extends StatelessWidget {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: Colors.white,
           ),
         ),
       ],

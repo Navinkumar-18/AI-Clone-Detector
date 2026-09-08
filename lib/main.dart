@@ -111,9 +111,56 @@ class _HomeScreenState extends State<HomeScreen>
   // ---------------------------------------------------------------------------
 
   Future<void> _pickAndAnalyze() async {
-    final picked = await FilePicker.platform.pickFiles(type: FileType.audio);
-    if (picked == null) return; // user cancelled
-    await _runPrediction(picked.files.single.path!);
+    try {
+      FilePickerResult? picked;
+      try {
+        picked = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['wav', 'mp3', 'm4a', 'flac', 'ogg', 'aac', 'webm', 'mp4', 'opus'],
+          withData: true,
+        );
+      } catch (_) {
+        // Fallback for devices where custom extensions trigger picker errors
+        picked = await FilePicker.platform.pickFiles(
+          type: FileType.audio,
+          withData: true,
+        );
+      }
+
+      if (picked == null || picked.files.isEmpty) return; // user cancelled
+
+      final file = picked.files.single;
+      String? resolvedPath = file.path;
+
+      // On Android Scoped Storage / Content Providers / Cloud, file.path may be null
+      // or inaccessible. If so, write the in-memory bytes to a local temporary file.
+      if (resolvedPath == null || !File(resolvedPath).existsSync()) {
+        if (file.bytes != null && file.bytes!.isNotEmpty) {
+          final tmpDir = await getTemporaryDirectory();
+          final ext = file.extension != null ? '.${file.extension}' : '.wav';
+          final safeName = 'voiceguard_upload_${DateTime.now().millisecondsSinceEpoch}$ext';
+          final tempFile = File('${tmpDir.path}/$safeName');
+          await tempFile.writeAsBytes(file.bytes!);
+          resolvedPath = tempFile.path;
+        }
+      }
+
+      if (resolvedPath == null) {
+        setState(() {
+          _screen = _ScreenState.error;
+          _errorMessage =
+              'Could not access the selected file.\n\nPlease select a local audio file stored on your device.';
+        });
+        return;
+      }
+
+      await _runPrediction(resolvedPath, originalFilename: file.name);
+    } catch (e) {
+      setState(() {
+        _screen = _ScreenState.error;
+        _errorMessage = 'Failed to open or read audio file:\n$e';
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -157,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen>
   // Shared prediction call
   // ---------------------------------------------------------------------------
 
-  Future<void> _runPrediction(String filePath) async {
+  Future<void> _runPrediction(String filePath, {String? originalFilename}) async {
     setState(() {
       _screen = _ScreenState.loading;
       _result = null;
@@ -165,27 +212,37 @@ class _HomeScreenState extends State<HomeScreen>
     });
 
     try {
-      final result = await VoiceGuardApiClient.predict(filePath);
+      final result = await VoiceGuardApiClient.predict(
+        filePath,
+        originalFilename: originalFilename,
+      );
       setState(() {
         _screen = _ScreenState.result;
         _result = result;
       });
-    } on BackendUnreachableException {
+    } on BackendUnreachableException catch (e) {
       setState(() {
         _screen = _ScreenState.error;
         _errorMessage =
-            'Cannot reach the server.\n\nMake sure the backend is running and the URL in Settings is correct.';
+            'Cannot reach the server (${e.detail}).\n\nMake sure the backend is running and the URL in Settings is correct.';
       });
-    } on UnsupportedFileException {
+    } on UnsupportedFileException catch (e) {
       setState(() {
         _screen = _ScreenState.error;
-        _errorMessage =
-            'This file could not be analysed.\n\nPlease use a supported audio format (WAV, MP3, M4A, FLAC).';
+        _errorMessage = e.message ??
+            'This file could not be analysed.\n\nPlease use a supported audio format (WAV, MP3, M4A, FLAC, OGG, AAC).';
       });
     } on BackendErrorException catch (e) {
       setState(() {
         _screen = _ScreenState.error;
-        _errorMessage = 'The server returned an error (HTTP ${e.statusCode}).\n\nTry again or check backend logs.';
+        _errorMessage = e.detail.isNotEmpty
+            ? 'Server error (HTTP ${e.statusCode}):\n${e.detail}'
+            : 'The server returned an error (HTTP ${e.statusCode}).\n\nTry again or check backend logs.';
+      });
+    } catch (e) {
+      setState(() {
+        _screen = _ScreenState.error;
+        _errorMessage = 'Unexpected error during analysis:\n$e';
       });
     } finally {
       // PRIVACY: Delete the recording file after prediction completes.
@@ -288,12 +345,16 @@ class _HomeScreenState extends State<HomeScreen>
         foregroundColor: Colors.white,
         elevation: 2,
         title: const Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.shield_outlined, size: 22),
             SizedBox(width: 8),
-            Text(
-              'VoiceGuard',
-              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
+            Flexible(
+              child: Text(
+                'VoiceGuard',
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
+              ),
             ),
           ],
         ),

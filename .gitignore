@@ -164,3 +164,5 @@ temp_test_audio/
 *.zip
 *.tar.gz
 *.rar
+# Widget Preview related
+.widget_preview/

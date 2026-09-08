@@ -715,14 +715,6 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
     return '$m:$s';
   }
 
-  String _riskEmoji(String level) {
-    return switch (level) {
-      'high' => '[H]',
-      'medium' => '[M]',
-      _ => '[L]',
-    };
-  }
-
   /// Maps risk_level to a human-readable category for consistent UI display.
   String _riskCategory(String level) {
     return switch (level) {
@@ -744,6 +736,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
         backgroundColor: const Color(0xFF161B22),
         foregroundColor: Colors.white,
         elevation: 0,
+        titleSpacing: Navigator.canPop(context) ? 4.0 : 16.0,
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -759,69 +752,122 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                 padding: EdgeInsets.all(14.0),
                 child: Icon(Icons.shield, color: Color(0xFF58A6FF), size: 22),
               ),
-        title: const Row(
-          children: [
-            Icon(Icons.shield_outlined, size: 20, color: Color(0xFF58A6FF)),
-            SizedBox(width: 8),
-            Text(
-              'VoiceGuard Live',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
+        title: const Text(
+          'VoiceGuard Live',
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 17,
+            letterSpacing: 0.3,
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.folder_open_outlined, color: Colors.white70),
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            icon: const Icon(Icons.folder_open_outlined, color: Colors.white70, size: 20),
             tooltip: 'Screen Audio File',
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const HomeScreen()),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.white70),
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            icon: const Icon(Icons.settings_outlined, color: Colors.white70, size: 20),
             tooltip: 'Server Settings',
             onPressed: () => showDialog<void>(
               context: context,
               builder: (_) => const SettingsDialog(),
             ),
           ),
-          // Backend status
+          // Backend status compact pill
           Padding(
-            padding: const EdgeInsets.only(right: 16, left: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: _backendConnected
+            padding: const EdgeInsets.only(right: 12, left: 2),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: (_backendConnected
                         ? const Color(0xFF3FB950)
-                        : const Color(0xFFF85149),
-                    shape: BoxShape.circle,
-                  ),
+                        : const Color(0xFFF85149))
+                    .withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: (_backendConnected
+                          ? const Color(0xFF3FB950)
+                          : const Color(0xFFF85149))
+                      .withValues(alpha: 0.35),
+                  width: 1,
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  _backendConnected ? 'AI ENGINE' : 'OFFLINE',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: _backendConnected
-                        ? const Color(0xFF3FB950)
-                        : const Color(0xFFF85149),
-                    letterSpacing: 0.5,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: _backendConnected
+                          ? const Color(0xFF3FB950)
+                          : const Color(0xFFF85149),
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    _backendConnected ? 'ENGINE' : 'OFFLINE',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: _backendConnected
+                          ? const Color(0xFF3FB950)
+                          : const Color(0xFFF85149),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
+      bottomNavigationBar: _callState == _CallState.active
+          ? SafeArea(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF161B22),
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF85149),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 3,
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    onPressed: _endCall,
+                    icon: const Icon(Icons.call_end, size: 20),
+                    label: const Text('END CALL'),
+                  ),
+                ),
+              ),
+            )
+          : null,
       body: SafeArea(
         child: switch (_callState) {
           _CallState.idle => _buildIdleView(),
@@ -1160,29 +1206,6 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
 
           // -- Live dev diagnostics panel --
           _buildDiagnosticsPanel(),
-          const SizedBox(height: 24),
-
-          // -- End call button --
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF85149),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              onPressed: _endCall,
-              icon: const Icon(Icons.call_end),
-              label: const Text('END CALL'),
-            ),
-          ),
           const SizedBox(height: 16),
         ],
       ),
@@ -1199,17 +1222,19 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: List.generate(24, (i) {
-          // Create varied bar heights based on audio level + some visual variance
+          // Create varied bar heights based on audio level + subtle resting wave
+          final wave = sin((i / 23) * pi);
+          final restingHeight = 3.0 + wave * 3.0; // 3.0 to 6.0px resting wave
           final seed = (i * 7 + DateTime.now().millisecond) % 10;
-          final variance = 0.3 + (seed / 10.0) * 0.7;
-          final barHeight = (_audioLevel * variance * 32).clamp(2.0, 32.0);
+          final variance = 0.4 + (seed / 10.0) * 0.6;
+          final barHeight = (_audioLevel * variance * 32).clamp(restingHeight, 32.0);
 
-          final barColor = _audioLevel > 0.1
+          final barColor = _audioLevel > 0.08
               ? const Color(0xFF58A6FF)
-              : Colors.white.withValues(alpha: 0.15);
+              : Colors.white.withValues(alpha: 0.2);
 
           return Container(
-            width: 6,
+            width: 5,
             height: barHeight,
             decoration: BoxDecoration(
               color: barColor.withValues(alpha: 0.3 + _audioLevel * 0.7),
@@ -1250,12 +1275,13 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
           const SizedBox(height: 10),
           ...recentEntries.map((e) {
             final scoreStr = (e.spoofScore * 100).toStringAsFixed(0);
+            final dotColor = RiskIndicator.riskColor(e.riskLevel, canShowLowRisk: true);
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
+              padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
                   SizedBox(
-                    width: 48,
+                    width: 44,
                     child: Text(
                       _formatDuration(e.timestamp),
                       style: TextStyle(
@@ -1266,9 +1292,13 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    _riskEmoji(e.riskLevel),
-                    style: const TextStyle(fontSize: 12),
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: dotColor,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -1276,7 +1306,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: RiskIndicator.riskColor(e.riskLevel),
+                      color: dotColor,
                     ),
                   ),
                   const Spacer(),

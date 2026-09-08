@@ -376,6 +376,34 @@ def _cleanup_temp(path: str) -> None:
     log.info("PRIVACY | Temp audio purged — no persistent storage of raw audio")
 
 
+def _load_audio_file(file_path: str, target_sr: int) -> np.ndarray:
+    """
+    Robust audio loader supporting WAV, MP3, FLAC, OGG, M4A, AAC, and WEBM.
+    Attempts librosa first; falls back to PyAV for formats without libsndfile/ffmpeg support.
+    """
+    try:
+        audio, _ = librosa.load(file_path, sr=target_sr, mono=True)
+        return audio
+    except Exception as librosa_err:
+        log.warning("librosa.load failed (%s) — falling back to PyAV for %s", librosa_err, file_path)
+        try:
+            import av
+            container = av.open(file_path)
+            resampler = av.AudioResampler(format="fltp", layout="mono", rate=target_sr)
+            frames = []
+            for frame in container.decode(audio=0):
+                for resampled_frame in resampler.resample(frame):
+                    frames.append(resampled_frame.to_ndarray())
+            if frames:
+                return np.concatenate(frames, axis=1).squeeze(0)
+            return np.array([], dtype=np.float32)
+        except Exception as av_err:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Cannot decode audio file: librosa error: {librosa_err}; PyAV error: {av_err}",
+            ) from av_err
+
+
 def _make_insufficient_evidence_response(
     reason_codes: List[str],
     request_id: str,
@@ -446,7 +474,7 @@ async def predict(request: Request, file: UploadFile = File(...)):
     # --- validate file type ---
     filename = file.filename or ""
     ext = os.path.splitext(filename)[-1].lower()
-    if ext not in cfg.audio.allowed_extensions:
+    if ext and ext not in cfg.audio.allowed_extensions:
         raise HTTPException(
             status_code=415,
             detail=f"Unsupported file type '{ext}'. Allowed: {', '.join(sorted(cfg.audio.allowed_extensions))}",
@@ -464,11 +492,8 @@ async def predict(request: Request, file: UploadFile = File(...)):
     try:
         tmp_path = _save_upload_to_temp(contents, suffix)
 
-        # Load audio
-        try:
-            audio, _ = librosa.load(tmp_path, sr=cfg.audio.sample_rate, mono=True)
-        except Exception as exc:
-            raise HTTPException(status_code=422, detail=f"Cannot read audio file: {exc}") from exc
+        # Load audio (robust: librosa + PyAV fallback)
+        audio = _load_audio_file(tmp_path, cfg.audio.sample_rate)
 
         if audio is None or len(audio) == 0:
             return _make_insufficient_evidence_response(
@@ -624,13 +649,8 @@ async def live_analyze(request: Request, file: UploadFile = File(...)):
     try:
         tmp_path = _save_upload_to_temp(contents, ".wav")
 
-        # Load audio
-        try:
-            audio, _ = librosa.load(tmp_path, sr=cfg.audio.sample_rate, mono=True)
-        except Exception as exc:
-            raise HTTPException(
-                status_code=422, detail=f"Cannot read audio chunk: {exc}"
-            ) from exc
+        # Load audio (robust: librosa + PyAV fallback)
+        audio = _load_audio_file(tmp_path, cfg.audio.sample_rate)
 
         if audio is None or len(audio) == 0:
             return _make_insufficient_evidence_response(

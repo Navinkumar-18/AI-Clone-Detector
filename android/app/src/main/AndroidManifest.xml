@@ -3,6 +3,9 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <!-- Internet access — required for HTTP calls to the backend -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Storage access — required by `file_picker` to read uploaded audio files -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
     <application
         android:label="VoiceGuard"
         android:name="${applicationName}"
