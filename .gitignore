@@ -150,6 +150,8 @@ config.local.*
 
 # Server logs
 server.log
+backend.log
+*.log
 
 # Temporary test audio
 temp_test_audio/

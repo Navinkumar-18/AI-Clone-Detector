@@ -81,6 +81,33 @@ class AudioQualityConfig:
 
 
 @dataclass(frozen=True)
+class LiveAnalysisConfig:
+    """Live-analysis capture and window contract.
+
+    VoiceGuard's current live-analysis contract requires a complete
+    full_window_ms of mono, 16 kHz audio.  This contract prevents
+    unstable inference on partial startup or timer-flush chunks.  The
+    exact training-duration distribution of the model is documented
+    separately in docs/LIVE_WINDOW_CONTRACT.md.
+    """
+    full_window_ms: int      # Must-have window length before inference (ms)
+    stride_ms: int           # Rolling-buffer advance per window (ms)
+    sample_rate: int         # Must equal audio.sample_rate
+    channels: int            # Must be 1 (mono)
+    bits_per_sample: int     # Must be 16
+
+    @property
+    def full_window_seconds(self) -> float:
+        """full_window_ms expressed in seconds."""
+        return self.full_window_ms / 1000.0
+
+    @property
+    def stride_seconds(self) -> float:
+        """stride_ms expressed in seconds."""
+        return self.stride_ms / 1000.0
+
+
+@dataclass(frozen=True)
 class ServerConfig:
     maximum_upload_bytes: int
     maximum_concurrency: int
@@ -107,6 +134,7 @@ class VoiceGuardConfig:
     audio_quality: AudioQualityConfig
     server: ServerConfig
     security: SecurityConfig
+    live_analysis: LiveAnalysisConfig
 
     @property
     def active_backend(self) -> BackendModelConfig:
@@ -209,6 +237,7 @@ def load_config(config_path: Optional[str] = None) -> VoiceGuardConfig:
     quality_raw = raw.get("audio_quality", {})
     server_raw = raw.get("server", {})
     security_raw = raw.get("security", {})
+    live_raw = raw.get("live_analysis", {})
 
     # Allow environment variable override for demo_mode
     demo_mode_env = os.environ.get("VOICEGUARD_DEMO_MODE", "").strip().lower()
@@ -257,6 +286,13 @@ def load_config(config_path: Optional[str] = None) -> VoiceGuardConfig:
         security=SecurityConfig(
             demo_mode=demo_mode,
             allowed_cors_origins=tuple(security_raw.get("allowed_cors_origins", [])),
+        ),
+        live_analysis=LiveAnalysisConfig(
+            full_window_ms=int(live_raw.get("full_window_ms", 4000)),
+            stride_ms=int(live_raw.get("stride_ms", 2000)),
+            sample_rate=int(live_raw.get("sample_rate", audio_raw.get("sample_rate", 16000))),
+            channels=int(live_raw.get("channels", 1)),
+            bits_per_sample=int(live_raw.get("bits_per_sample", 16)),
         ),
     )
 

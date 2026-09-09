@@ -122,6 +122,27 @@ def normal_wav(normal_audio) -> bytes:
 
 
 @pytest.fixture
+def live_normal_audio() -> np.ndarray:
+    """4 seconds of speech-like audio for live-analysis tests.
+
+    Uses exactly 4000 ms (FULL_WINDOW_MS) to satisfy the live-analysis
+    complete-window contract.  Upload tests should continue to use normal_audio
+    (3 seconds) since /predict has no minimum-duration guard beyond the
+    quality check (0.5 s).
+    """
+    rng = np.random.RandomState(42)
+    t = np.linspace(0, 4.0, SAMPLE_RATE * 4, endpoint=False)
+    signal = 0.4 * np.sin(2 * np.pi * 440 * t) + 0.05 * rng.randn(len(t))
+    return signal.astype(np.float32)
+
+
+@pytest.fixture
+def live_normal_wav(live_normal_audio) -> bytes:
+    """4 seconds of speech-like audio as WAV bytes (for /live/analyze tests)."""
+    return make_wav_bytes(live_normal_audio)
+
+
+@pytest.fixture
 def high_energy_audio() -> np.ndarray:
     """3 seconds of high-energy audio."""
     rng = np.random.RandomState(123)

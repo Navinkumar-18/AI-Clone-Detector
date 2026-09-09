@@ -49,20 +49,32 @@ const Duration kRequestTimeout = Duration(seconds: 30);
 // ---------------------------------------------------------------------------
 // Live Call Analysis constants
 // ---------------------------------------------------------------------------
+// These values mirror model_config.yaml → live_analysis.
+// If you change them here you MUST also update model_config.yaml and
+// run the test suite.  The backend is the authoritative enforcement point.
 
-/// Duration of each analysis window sent to the backend (seconds).
-/// The rolling buffer captures this much audio before sending.
-const int kLiveChunkDurationSec = 4;
+/// Full analysis window required before sending to backend (milliseconds).
+/// Mirrors model_config.yaml → live_analysis.full_window_ms.
+/// A buffer shorter than this must NOT be sent for inference.
+const int kLiveFullWindowMs = 4000;
+
+/// Rolling-buffer stride — how many ms to remove from the front after
+/// each analysis window.  Mirrors model_config.yaml → live_analysis.stride_ms.
+const int kLiveStrideMs = 2000;
+
+/// Duration of each analysis window in seconds (derived from kLiveFullWindowMs).
+/// Kept for backward compatibility with existing timer setup.
+const int kLiveChunkDurationSec = kLiveFullWindowMs ~/ 1000;
 
 /// Interval between consecutive analysis sends (seconds).
 /// Together with kLiveChunkDurationSec, this creates overlapping windows:
 ///   0s──────4s
 ///         2s──────6s
 ///               4s──────8s
-const int kLiveAnalysisIntervalSec = 2;
+const int kLiveAnalysisIntervalSec = kLiveStrideMs ~/ 1000;
 
 /// Sample rate for live audio capture — must match backend's SAMPLE_RATE.
-/// This value is obtained from config/model_config.yaml via the backend.
+/// Mirrors model_config.yaml → live_analysis.sample_rate.
 const int kLiveSampleRate = 16000;
 
 /// How often to check backend connectivity during a live call (seconds).

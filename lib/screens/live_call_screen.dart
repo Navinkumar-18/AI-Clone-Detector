@@ -303,10 +303,12 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
   void _onAudioData(Uint8List data) {
     _pcmBuffer.addAll(data);
 
-    // Keep only the rolling buffer window (Caution 2: computed from actual format)
+    // Keep the buffer from growing unbounded: cap at 3× the full window.
+    // We do NOT trim to just one window here — the rolling-window logic in
+    // _analyzeCurrentBuffer reads from the front and must preserve overlap.
     final bytesPerSec = _captureSampleRate * _bytesPerSample;
-    final maxBytes = kLiveChunkDurationSec * bytesPerSec;
-    if (_pcmBuffer.length > maxBytes * 2) {
+    final maxBytes = (kLiveFullWindowMs ~/ 1000) * bytesPerSec * 3;
+    if (_pcmBuffer.length > maxBytes) {
       _pcmBuffer.removeRange(0, _pcmBuffer.length - maxBytes);
     }
 
@@ -333,37 +335,58 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
       final rms = sqrt(sumSquares / sampleCount);
       // Normalize to 0–1 with some headroom
       final level = (rms * 5.0).clamp(0.0, 1.0);
-      if (mounted) setState(() => _audioLevel = level);
+      final smoothed = _audioLevel * 0.6 + level * 0.4;
+      if (mounted) setState(() => _audioLevel = smoothed);
     }
   }
 
   // -------------------------------------------------------------------------
-  // Analyze current buffer
+  // Analyze current buffer — true deterministic rolling-window
   // -------------------------------------------------------------------------
   Future<void> _analyzeCurrentBuffer() async {
     // Prevent concurrent analysis requests
     if (_isAnalyzing) return;
     if (_callState != _CallState.active) return;
 
-    // Need at least 1 second of audio (Caution 2: computed using validated capture format)
     final bytesPerSec = _captureSampleRate * _bytesPerSample;
-    final minBytes = bytesPerSec;
-    if (_pcmBuffer.length < minBytes) return;
+
+    // Full-window byte count derived from the central constant.
+    // A buffer smaller than this must NOT be sent for inference.
+    final fullWindowBytes = (kLiveFullWindowMs / 1000 * bytesPerSec).round();
+    final strideBytes = (kLiveStrideMs / 1000 * bytesPerSec).round();
+
+    // Align buffer length to sample-boundary
+    final alignedLength = _pcmBuffer.length - (_pcmBuffer.length % _bytesPerSample);
+
+    if (alignedLength < fullWindowBytes) {
+      // Buffer is still accumulating — show ANALYZING, do not send.
+      if (mounted) {
+        setState(() {
+          // Only update if we haven't yet received a valid result.
+          if (_riskHistory.isEmpty) {
+            _callLevelDecision = 'insufficient_evidence';
+            _callLevelAction = 'verify';
+            _callLevelRisk = 'unknown';
+            _callLevelReasons = const ['partial_window'];
+            _canShowCurrentLowRisk = false;
+          }
+        });
+      }
+      return;
+    }
 
     _isAnalyzing = true;
 
     try {
-      // Ensure buffer size is aligned to sample boundaries
-      final alignedBufferLength =
-          _pcmBuffer.length - (_pcmBuffer.length % _bytesPerSample);
-      final targetBytes = kLiveChunkDurationSec * bytesPerSec;
-      final startIdx = alignedBufferLength > targetBytes
-          ? alignedBufferLength - targetBytes
-          : 0;
-      final chunk =
-          Uint8List.fromList(_pcmBuffer.sublist(startIdx, alignedBufferLength));
+      // Take exactly one full window from the FRONT of the buffer.
+      // This is the rolling-window slice — not from the end.
+      final chunk = Uint8List.fromList(_pcmBuffer.sublist(0, fullWindowBytes));
 
-      // Calculate chunk RMS (Caution 2: validate real sample data before sending)
+      // Advance the buffer by exactly strideBytes (preserve overlap tail).
+      final removeBytes = strideBytes.clamp(0, _pcmBuffer.length);
+      _pcmBuffer.removeRange(0, removeBytes);
+
+      // Calculate chunk RMS for diagnostics
       double sumSq = 0;
       int samples = 0;
       for (int i = 0; i < chunk.length - 1; i += 2) {
@@ -377,6 +400,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
       _currentRms = chunkRms;
 
       // Digital silence / near-silence pre-check (RMS < 0.003)
+      // Do not send the buffer — the backend would return no_speech anyway.
       if (chunkRms < 0.003) {
         if (mounted) {
           setState(() {
@@ -437,7 +461,8 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
       if (mounted) {
         setState(() {
           _canShowCurrentLowRisk = false;
-          _lastError = 'Backend error: ${e.statusCode}';
+          _lastError =
+              'Backend error: ${e.statusCode}${e.detail.isNotEmpty ? " (${e.detail})" : ""}';
           if (_wasActionHeld || _callLevelAction == 'hold') {
             _callLevelDecision = 'action_held';
             _callLevelAction = 'hold';
@@ -1064,7 +1089,7 @@ class _LiveCallScreenState extends State<LiveCallScreen> {
                         letterSpacing: 1,
                       ),
                     ),
-                    if (_audioLevel < 0.03 && _callState == _CallState.active)
+                    if (_currentRms < 0.003 && _callState == _CallState.active)
                       const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

@@ -95,13 +95,17 @@ class TransactionCard extends StatelessWidget {
                   children: [
                     Icon(Icons.account_balance, size: 18, color: Color(0xFF58A6FF)),
                     SizedBox(width: 8),
-                    Text(
-                      'SENSITIVE TRANSACTION',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 1,
+                    Expanded(
+                      child: Text(
+                        'SENSITIVE TRANSACTION',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 1,
+                        ),
                       ),
                     ),
                   ],
@@ -250,12 +254,17 @@ class TransactionCard extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.5),
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
         ),
       ],
@@ -284,7 +293,18 @@ class TransactionCard extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Independent Verification Required'),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Color(0xFFE65100), size: 24),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Independent Verification Required',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,9 +357,14 @@ class TransactionCard extends StatelessWidget {
       builder: (_) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.check_circle_outline, color: Color(0xFF2E7D32)),
+            Icon(Icons.check_circle_outline, color: Color(0xFF2E7D32), size: 24),
             SizedBox(width: 8),
-            Text('Transfer Verification Passed'),
+            Expanded(
+              child: Text(
+                'Transfer Verification Passed',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
         content: const Text(

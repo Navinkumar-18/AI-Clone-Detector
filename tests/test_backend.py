@@ -153,7 +153,8 @@ class TestLiveAnalyzeEndpoint:
         assert data["action"] == "verify"
         assert data["speech_detected"] is False
 
-    def test_live_analyze_mock_spoof(self, client, mock_model, normal_wav):
+    def test_live_analyze_mock_spoof(self, client, mock_model, live_normal_wav):
+        """Complete 4-second spoof chunk must reach inference and return verification_required."""
         with mock.patch("backend._run_inference_sync") as mock_inf:
             mock_inf.return_value = {
                 "label": "spoof",
@@ -162,7 +163,7 @@ class TestLiveAnalyzeEndpoint:
                 "spoof_score": 0.88,
                 "prob_real": 0.12,
             }
-            files = {"file": ("chunk.wav", io.BytesIO(normal_wav), "audio/wav")}
+            files = {"file": ("chunk.wav", io.BytesIO(live_normal_wav), "audio/wav")}
             resp = client.post("/live/analyze", files=files)
             assert resp.status_code == 200
             data = resp.json()
@@ -187,13 +188,236 @@ class TestSecurityAndMiddleware:
         assert "Upload exceeds maximum size" in resp.json()["detail"]
 
     def test_rate_limiting_enforced(self, client):
+        """Exceeding the request-per-minute limit on API endpoints returns 429."""
+        backend._rate_limit_store.clear()
         limit = backend.cfg.server.rate_limit_requests_per_minute
-        # Fire requests up to the limit
+        # Fire requests up to the limit on an API route
         for _ in range(limit):
+            r = client.post("/live/analyze")
+            assert r.status_code != 429
+
+        # Next request must be 429
+        r_blocked = client.post("/live/analyze")
+        assert r_blocked.status_code == 429
+        assert "Rate limit exceeded" in r_blocked.json()["detail"]
+
+    def test_health_exempt_from_rate_limiting(self, client):
+        """Health and readiness probes must never be blocked by rate limiting."""
+        backend._rate_limit_store.clear()
+        limit = backend.cfg.server.rate_limit_requests_per_minute
+        # Exceed rate limit on health checks
+        for _ in range(limit + 10):
             r = client.get("/health")
             assert r.status_code == 200
 
-        # Next request must be 429
-        r_blocked = client.get("/health")
-        assert r_blocked.status_code == 429
-        assert "Rate limit exceeded" in r_blocked.json()["detail"]
+        r_ready = client.get("/ready")
+        assert r_ready.status_code in (200, 503)  # Ready or not_ready, never 429
+
+
+class TestFileAnalyzeWindowsEndpoint:
+    def test_analyze_windows_4_second_windows(self, client, mock_model):
+        import numpy as np
+        from tests.conftest import SAMPLE_RATE
+        t = np.linspace(0, 8.0, int(SAMPLE_RATE * 8.0), endpoint=False)
+        audio = (0.35 * np.sin(2 * np.pi * 250 * t)).astype(np.float32)
+        wav_bytes = make_wav_bytes(audio)
+
+        with mock.patch("backend._run_inference_sync") as mock_inf:
+            mock_inf.return_value = {
+                "label": "bonafide",
+                "confidence": 0.95,
+                "risk_level": "low",
+                "spoof_score": 0.05,
+                "prob_real": 0.95,
+            }
+            files = {"file": ("test8s.wav", io.BytesIO(wav_bytes), "audio/wav")}
+            resp = client.post("/file/analyze_windows", files=files)
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["window_length_seconds"] == 4.0
+            assert data["complete_window_count"] == 3
+            for w in data["windows"]:
+                if w["window_complete"]:
+                    assert w["duration_seconds"] == 4.0
+
+    def test_analyze_windows_2_second_stride(self, client, mock_model):
+        import numpy as np
+        from tests.conftest import SAMPLE_RATE
+        t = np.linspace(0, 8.0, int(SAMPLE_RATE * 8.0), endpoint=False)
+        audio = (0.35 * np.sin(2 * np.pi * 250 * t)).astype(np.float32)
+        wav_bytes = make_wav_bytes(audio)
+
+        with mock.patch("backend._run_inference_sync") as mock_inf:
+            mock_inf.return_value = {
+                "label": "bonafide",
+                "confidence": 0.95,
+                "risk_level": "low",
+                "spoof_score": 0.05,
+                "prob_real": 0.95,
+            }
+            files = {"file": ("test8s.wav", io.BytesIO(wav_bytes), "audio/wav")}
+            resp = client.post("/file/analyze_windows", files=files)
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["stride_seconds"] == 2.0
+            windows = data["windows"]
+            assert windows[0]["start_seconds"] == 0.0 and windows[0]["end_seconds"] == 4.0
+            assert windows[1]["start_seconds"] == 2.0 and windows[1]["end_seconds"] == 6.0
+            assert windows[2]["start_seconds"] == 4.0 and windows[2]["end_seconds"] == 8.0
+
+    def test_analyze_windows_exact_boundary(self, client, mock_model):
+        import numpy as np
+        from tests.conftest import SAMPLE_RATE
+        t = np.linspace(0, 4.0, int(SAMPLE_RATE * 4.0), endpoint=False)
+        audio = (0.35 * np.sin(2 * np.pi * 250 * t)).astype(np.float32)
+        wav_bytes = make_wav_bytes(audio)
+
+        with mock.patch("backend._run_inference_sync") as mock_inf:
+            mock_inf.return_value = {
+                "label": "bonafide",
+                "confidence": 0.92,
+                "risk_level": "low",
+                "spoof_score": 0.08,
+                "prob_real": 0.92,
+            }
+            files = {"file": ("exact4s.wav", io.BytesIO(wav_bytes), "audio/wav")}
+            resp = client.post("/file/analyze_windows", files=files)
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["window_count"] == 1
+            assert data["complete_window_count"] == 1
+            assert data["windows"][0]["window_complete"] is True
+            assert data["windows"][0]["start_seconds"] == 0.0
+            assert data["windows"][0]["end_seconds"] == 4.0
+
+    def test_analyze_windows_short_file(self, client, mock_model):
+        import numpy as np
+        from tests.conftest import SAMPLE_RATE
+        t = np.linspace(0, 2.5, int(SAMPLE_RATE * 2.5), endpoint=False)
+        audio = (0.35 * np.sin(2 * np.pi * 250 * t)).astype(np.float32)
+        wav_bytes = make_wav_bytes(audio)
+
+        with mock.patch("backend._run_inference_sync") as mock_inf:
+            files = {"file": ("short2_5s.wav", io.BytesIO(wav_bytes), "audio/wav")}
+            resp = client.post("/file/analyze_windows", files=files)
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["complete_window_count"] == 0
+            assert data["decision"] == "insufficient_evidence"
+            assert "short_audio" in data["reason_codes"]
+            assert len(data["windows"]) == 1
+            assert data["windows"][0]["window_complete"] is False
+            assert "short_audio" in data["windows"][0]["reason_codes"]
+            mock_inf.assert_not_called()
+
+    def test_analyze_windows_partial_final_segment(self, client, mock_model):
+        import numpy as np
+        from tests.conftest import SAMPLE_RATE
+        # 7.0 seconds audio: [0, 4] complete, [2, 6] complete, remainder [4, 7] is 3.0s (partial)
+        t = np.linspace(0, 7.0, int(SAMPLE_RATE * 7.0), endpoint=False)
+        audio = (0.35 * np.sin(2 * np.pi * 250 * t)).astype(np.float32)
+        wav_bytes = make_wav_bytes(audio)
+
+        with mock.patch("backend._run_inference_sync") as mock_inf:
+            mock_inf.return_value = {
+                "label": "bonafide",
+                "confidence": 0.90,
+                "risk_level": "low",
+                "spoof_score": 0.10,
+                "prob_real": 0.90,
+            }
+            files = {"file": ("test7s.wav", io.BytesIO(wav_bytes), "audio/wav")}
+            resp = client.post("/file/analyze_windows", files=files)
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["complete_window_count"] == 2
+            assert data["window_count"] == 3
+            last_w = data["windows"][-1]
+            assert last_w["window_complete"] is False
+            assert last_w["duration_seconds"] == 3.0
+            assert "partial_window" in last_w["reason_codes"]
+            assert mock_inf.call_count == 2
+
+    def test_analyze_windows_silence(self, client, mock_model):
+        import numpy as np
+        from tests.conftest import SAMPLE_RATE
+        silence_5s = np.zeros(SAMPLE_RATE * 5, dtype=np.float32)
+        wav_bytes = make_wav_bytes(silence_5s)
+
+        with mock.patch("backend._run_inference_sync") as mock_inf:
+            files = {"file": ("silence5s.wav", io.BytesIO(wav_bytes), "audio/wav")}
+            resp = client.post("/file/analyze_windows", files=files)
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["decision"] != "low_risk"
+            assert data["decision"] == "insufficient_evidence"
+            for w in data["windows"]:
+                if w["window_complete"]:
+                    assert w["speech_detected"] is False
+            mock_inf.assert_not_called()
+
+    def test_analyze_windows_invalid_audio(self, client, mock_model):
+        files = {"file": ("bad.exe", io.BytesIO(b"not audio data"), "application/octet-stream")}
+        resp = client.post("/file/analyze_windows", files=files)
+        assert resp.status_code == 415
+
+        files_corrupt = {"file": ("corrupt.wav", io.BytesIO(b"RIFFcorruptedtrash"), "audio/wav")}
+        resp_corrupt = client.post("/file/analyze_windows", files=files_corrupt)
+        assert resp_corrupt.status_code in (200, 422)
+        if resp_corrupt.status_code == 200:
+            assert resp_corrupt.json()["decision"] == "insufficient_evidence"
+
+    def test_analyze_windows_model_unavailable(self, client):
+        import numpy as np
+        from tests.conftest import SAMPLE_RATE
+        _state["model_loaded"] = False
+        t = np.linspace(0, 4.0, int(SAMPLE_RATE * 4.0), endpoint=False)
+        audio = (0.35 * np.sin(2 * np.pi * 250 * t)).astype(np.float32)
+        wav_bytes = make_wav_bytes(audio)
+
+        files = {"file": ("test.wav", io.BytesIO(wav_bytes), "audio/wav")}
+        resp = client.post("/file/analyze_windows", files=files)
+        assert resp.status_code == 503
+
+    def test_analyze_windows_preserves_upload_path(self, client, mock_model, normal_wav):
+        with mock.patch("backend._run_inference_sync") as mock_inf:
+            mock_inf.return_value = {
+                "label": "bonafide",
+                "confidence": 0.96,
+                "risk_level": "low",
+                "spoof_score": 0.04,
+                "prob_real": 0.96,
+            }
+            files = {"file": ("normal.wav", io.BytesIO(normal_wav), "audio/wav")}
+            resp = client.post("/predict", files=files)
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["decision"] == "low_risk"
+            assert data["label"] == "bonafide"
+            assert "evidence" in data
+            assert "audio_quality" in data
+            assert "risk_percentage" in data
+
+    def test_analyze_windows_uses_active_model_threshold(self, client, mock_model):
+        import numpy as np
+        from tests.conftest import SAMPLE_RATE
+        t = np.linspace(0, 4.0, int(SAMPLE_RATE * 4.0), endpoint=False)
+        audio = (0.35 * np.sin(2 * np.pi * 250 * t)).astype(np.float32)
+        wav_bytes = make_wav_bytes(audio)
+
+        with mock.patch("backend._run_inference_sync") as mock_inf:
+            mock_inf.return_value = {
+                "label": "spoof",
+                "confidence": 0.92,
+                "risk_level": "high",
+                "spoof_score": 0.92,
+                "prob_real": 0.08,
+            }
+            files = {"file": ("spoof.wav", io.BytesIO(wav_bytes), "audio/wav")}
+            resp = client.post("/file/analyze_windows", files=files)
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["model_version"] == backend.cfg.model.version
+            assert data["threshold_version"] == backend.cfg.thresholds.version
+            assert data["high_risk_windows"] == 1
+            assert data["decision"] in ("verification_required", "action_held")

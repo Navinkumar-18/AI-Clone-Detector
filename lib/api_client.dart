@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart' as http_io;
 import 'config.dart';
 import 'models/live_analysis_result.dart';
+import 'models/sliding_window_result.dart';
 
 // ---------------------------------------------------------------------------
 // Result model — /predict contract (updated for canonical schema)
@@ -35,6 +36,11 @@ class PredictResult {
   final String thresholdVersion;
   final bool modelLoaded;     // fail-closed: default is false
   final DateTime receivedAt;
+  final String audioQualityStatus;
+  final double? rms;
+  final double? snrDb;
+  final double? voicedRatio;
+  final double? durationSeconds;
 
   PredictResult({
     required this.decision,
@@ -51,6 +57,11 @@ class PredictResult {
     this.scoreType = '',
     this.thresholdVersion = '',
     this.modelLoaded = false,
+    this.audioQualityStatus = 'unknown',
+    this.rms,
+    this.snrDb,
+    this.voicedRatio,
+    this.durationSeconds,
     DateTime? receivedAt,
   }) : receivedAt = receivedAt ?? DateTime.now();
 
@@ -59,6 +70,13 @@ class PredictResult {
     if (json['reason_codes'] is List) {
       reasons = (json['reason_codes'] as List).map((e) => e.toString()).toList();
     }
+
+    final aq = json['audio_quality'] as Map<String, dynamic>?;
+    final aqStatus = aq?['status'] as String? ?? 'unknown';
+    final rms = (aq?['rms'] as num?)?.toDouble();
+    final snrDb = (aq?['snr_db'] as num?)?.toDouble();
+    final voicedRatio = (aq?['voiced_ratio'] as num?)?.toDouble();
+    final durationSeconds = (aq?['duration_seconds'] as num?)?.toDouble();
 
     return PredictResult(
       decision: json['decision'] as String? ?? _legacyDecision(json),
@@ -75,6 +93,11 @@ class PredictResult {
       scoreType: json['score_type'] as String? ?? '',
       thresholdVersion: json['threshold_version'] as String? ?? '',
       modelLoaded: json['model_loaded'] as bool? ?? false,
+      audioQualityStatus: aqStatus,
+      rms: rms,
+      snrDb: snrDb,
+      voicedRatio: voicedRatio,
+      durationSeconds: durationSeconds,
       receivedAt: DateTime.now(),
     );
   }
@@ -94,8 +117,11 @@ class PredictResult {
 
   bool get canShowLowRisk =>
       decision == 'low_risk' &&
+      label == 'bonafide' &&
+      riskLevel == 'low' &&
       speechDetected == true &&
       modelLoaded == true &&
+      audioQualityStatus == 'acceptable' &&
       isFresh() &&
       !reasonCodes.any(LiveAnalysisResult.blockingReasonCodes.contains);
 }
@@ -278,6 +304,110 @@ class VoiceGuardApiClient {
   }
 
   // -------------------------------------------------------------------------
+  // File Sliding Window Analysis (4s windows, 2s stride)
+  // -------------------------------------------------------------------------
+
+  /// Send [filePath] to POST /file/analyze_windows.
+  /// If unavailable (e.g. older backend 404/405), falls back to /predict
+  /// without synthesizing fake window telemetry.
+  static Future<FileSlidingAnalysisResult> analyzeFileWindows(
+    String filePath, {
+    String? originalFilename,
+  }) async {
+    final uri = Uri.parse('${BackendConfig.baseUrl}/file/analyze_windows');
+    final request = http.MultipartRequest('POST', uri);
+
+    final filename = (originalFilename != null && originalFilename.isNotEmpty)
+        ? originalFilename
+        : filePath.split(Platform.pathSeparator).last;
+
+    try {
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        filePath,
+        filename: filename,
+      ));
+    } on FileSystemException {
+      throw const UnsupportedFileException();
+    }
+
+    http.StreamedResponse streamedResponse;
+    try {
+      streamedResponse = await _client.send(request).timeout(kRequestTimeout);
+    } on SocketException catch (e) {
+      throw BackendUnreachableException(e.message);
+    } on TimeoutException {
+      throw const BackendUnreachableException('Request timed out');
+    } catch (e) {
+      throw BackendUnreachableException(e.toString());
+    }
+
+    http.Response response;
+    try {
+      response = await http.Response.fromStream(streamedResponse);
+    } catch (e) {
+      throw BackendUnreachableException('Failed to read server response: $e');
+    }
+
+    if (response.statusCode == 200) {
+      try {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        return FileSlidingAnalysisResult.fromJson(json);
+      } catch (_) {
+        throw const BackendErrorException(200, 'Invalid sliding window response format from server.');
+      }
+    }
+
+    // If endpoint is not found on legacy backend, fallback to /predict
+    if (response.statusCode == 404 || response.statusCode == 405) {
+      final pred = await predict(filePath, originalFilename: originalFilename);
+      return FileSlidingAnalysisResult(
+        totalDurationSeconds: 0.0,
+        windowLengthSeconds: 4.0,
+        strideSeconds: 2.0,
+        windowCount: 0,
+        completeWindowCount: 0,
+        highRiskWindows: pred.riskLevel == 'high' ? 1 : 0,
+        maximumSpoofScore: pred.spoofScore,
+        averageSpoofScore: pred.spoofScore,
+        emaScore: pred.spoofScore,
+        decision: pred.decision,
+        action: pred.action,
+        persistenceTriggered: false,
+        consecutiveHighCount: 0,
+        reasonCodes: [
+          'Sliding-window details unavailable; showing single-file analysis.',
+          ...pred.reasonCodes,
+        ],
+        modelBackend: pred.modelBackend,
+        modelVersion: pred.modelVersion,
+        scoreType: pred.scoreType,
+        thresholdVersion: pred.thresholdVersion,
+        modelLoaded: pred.modelLoaded,
+        windows: const [],
+        isFallbackPredict: true,
+      );
+    }
+
+    if (response.statusCode == 413) {
+      throw const UnsupportedFileException('Audio file exceeds maximum allowed size (10 MB).');
+    }
+    if (response.statusCode == 415 || response.statusCode == 422) {
+      String detail = '';
+      try {
+        final errJson = jsonDecode(response.body) as Map<String, dynamic>;
+        detail = errJson['detail']?.toString() ?? '';
+      } catch (_) {}
+      throw UnsupportedFileException(detail.isNotEmpty ? detail : null);
+    }
+    if (response.statusCode == 429) {
+      throw const BackendErrorException(429, 'Rate limit exceeded. Please wait a moment.');
+    }
+
+    throw BackendErrorException(response.statusCode, response.body);
+  }
+
+  // -------------------------------------------------------------------------
   // Live Call Analysis
   // -------------------------------------------------------------------------
 
@@ -295,28 +425,33 @@ class VoiceGuardApiClient {
       filename: 'live_chunk.wav',
     ));
 
-    http.StreamedResponse streamedResponse;
+    http.Response response;
     try {
-      streamedResponse = await _client.send(request).timeout(kLiveRequestTimeout);
+      final streamedResponse =
+          await _client.send(request).timeout(kLiveRequestTimeout);
+      response = await http.Response.fromStream(streamedResponse);
     } on SocketException catch (e) {
       throw BackendUnreachableException(e.message);
     } on TimeoutException {
       throw const BackendUnreachableException('Live analysis timed out');
     } catch (e) {
-      throw BackendUnreachableException(e.toString());
+      throw BackendUnreachableException('Live analysis network error: $e');
     }
 
-    final response = await http.Response.fromStream(streamedResponse);
-
     if (response.statusCode != 200) {
-      throw BackendErrorException(response.statusCode);
+      String detail = '';
+      try {
+        final errJson = jsonDecode(response.body) as Map<String, dynamic>;
+        detail = errJson['detail']?.toString() ?? '';
+      } catch (_) {}
+      throw BackendErrorException(response.statusCode, detail);
     }
 
     try {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       return LiveAnalysisResult.fromJson(json);
     } catch (_) {
-      throw const BackendErrorException(200);
+      throw const BackendErrorException(200, 'Invalid response format');
     }
   }
 

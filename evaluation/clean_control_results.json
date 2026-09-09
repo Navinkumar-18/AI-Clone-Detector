@@ -1,0 +1,19 @@
+{
+  "model": "wav2vec2",
+  "model_id": "garystafford/wav2vec2-deepfake-voice-detector",
+  "ai_clip": {
+    "file_path": "test_clip.wav",
+    "duration_seconds": 2.0,
+    "rms": 0.282842,
+    "snr_db": 0.0,
+    "clipping_ratio": 0.0,
+    "voiced_ratio": 1.0,
+    "quality_status": "acceptable",
+    "prob_fake": 0.48429,
+    "prob_real": 0.51571,
+    "predicted_label": "spoof",
+    "risk_percentage": 48.4,
+    "risk_level": "medium"
+  },
+  "real_voice_control": null
+}

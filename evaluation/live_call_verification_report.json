@@ -1,0 +1,195 @@
+{
+  "step_1_startup_accumulation_0_to_4s": {
+    "requests_sent_before_4s": 0,
+    "simulated_states": [
+      {
+        "time_sec": 1,
+        "buffer_bytes": 32000,
+        "buffer_duration_sec": 1.0,
+        "request_sent": false,
+        "ui_decision": "insufficient_evidence",
+        "can_show_low_risk": false,
+        "display_badge": "ANALYZING"
+      },
+      {
+        "time_sec": 2,
+        "buffer_bytes": 64000,
+        "buffer_duration_sec": 2.0,
+        "request_sent": false,
+        "ui_decision": "insufficient_evidence",
+        "can_show_low_risk": false,
+        "display_badge": "ANALYZING"
+      },
+      {
+        "time_sec": 3,
+        "buffer_bytes": 96000,
+        "buffer_duration_sec": 3.0,
+        "request_sent": false,
+        "ui_decision": "insufficient_evidence",
+        "can_show_low_risk": false,
+        "display_badge": "ANALYZING"
+      }
+    ],
+    "sub_4s_backend_rejection": {
+      "decision": "insufficient_evidence",
+      "action": "verify",
+      "label": "unknown",
+      "spoof_score": 0.0,
+      "confidence": 0.0,
+      "risk_level": "unknown",
+      "risk_percentage": 0.0,
+      "speech_detected": false,
+      "audio_quality": {
+        "status": "unknown",
+        "duration_seconds": 0.0,
+        "rms": 0.0,
+        "snr_db": null,
+        "clipping_ratio": 0.0,
+        "voiced_ratio": 0.0
+      },
+      "evidence": {
+        "window_count": 0,
+        "high_risk_window_count": 0,
+        "analysis_age_ms": 0
+      },
+      "reason_codes": [
+        "partial_window"
+      ],
+      "model_version": "voiceguard-v1",
+      "model_backend": "wav2vec2",
+      "score_type": "uncalibrated_softmax_score",
+      "threshold_version": "threshold-v2",
+      "model_loaded": true,
+      "request_id": "d4c3794d-0c06-43a3-8617-ab5e24c93746"
+    },
+    "verified": true
+  },
+  "step_2_first_complete_window": {
+    "window_duration_seconds": 4.0,
+    "window_bytes": 128000,
+    "backend_response": {
+      "decision": "low_risk",
+      "action": "allow_with_caution",
+      "label": "bonafide",
+      "spoof_score": 0.055088,
+      "confidence": 0.944912,
+      "risk_level": "low",
+      "risk_percentage": 94.5,
+      "speech_detected": true,
+      "audio_quality": {
+        "status": "acceptable",
+        "duration_seconds": 4.0,
+        "rms": 0.252626,
+        "snr_db": 0.2,
+        "clipping_ratio": 0.0,
+        "voiced_ratio": 1.0
+      },
+      "evidence": {
+        "window_count": 0,
+        "high_risk_window_count": 0,
+        "analysis_age_ms": 0
+      },
+      "reason_codes": [],
+      "model_version": "voiceguard-v1",
+      "model_backend": "wav2vec2",
+      "score_type": "uncalibrated_softmax_score",
+      "threshold_version": "threshold-v2",
+      "model_loaded": true,
+      "request_id": "ec803804-ca9b-48e4-b942-141bed28f37e"
+    },
+    "verified": true
+  },
+  "step_3_stride_progression": {
+    "stride_ms": 2000,
+    "window_2_duration_s": 4.0,
+    "window_3_duration_s": 4.0,
+    "verified": true
+  },
+  "step_4_predict_vs_live_parity": {
+    "human_audio": {
+      "predict_score": 0.914501,
+      "live_score": 0.914501,
+      "score_delta": 0.0,
+      "predict_label": "spoof",
+      "live_label": "spoof"
+    },
+    "spoof_audio": {
+      "predict_score": 0.469802,
+      "live_score": 0.469802,
+      "score_delta": 0.0,
+      "predict_label": "spoof",
+      "live_label": "spoof"
+    },
+    "verified": true
+  },
+  "step_5_silence_safety": {
+    "response": {
+      "decision": "insufficient_evidence",
+      "action": "verify",
+      "label": "unknown",
+      "spoof_score": 0.0,
+      "confidence": 0.0,
+      "risk_level": "unknown",
+      "risk_percentage": 0.0,
+      "speech_detected": false,
+      "audio_quality": {
+        "status": "silent",
+        "duration_seconds": 4.0,
+        "rms": 0.0,
+        "snr_db": null,
+        "clipping_ratio": 0.0,
+        "voiced_ratio": 0.0
+      },
+      "evidence": {
+        "window_count": 0,
+        "high_risk_window_count": 0,
+        "analysis_age_ms": 0
+      },
+      "reason_codes": [
+        "no_speech"
+      ],
+      "model_version": "voiceguard-v1",
+      "model_backend": "wav2vec2",
+      "score_type": "uncalibrated_softmax_score",
+      "threshold_version": "threshold-v2",
+      "model_loaded": true,
+      "request_id": "7bef79ef-0185-49a6-b81d-c3ab704b7d37"
+    },
+    "verified": true
+  },
+  "step_6_final_partial_buffer": {
+    "response": {
+      "decision": "insufficient_evidence",
+      "action": "verify",
+      "label": "unknown",
+      "spoof_score": 0.0,
+      "confidence": 0.0,
+      "risk_level": "unknown",
+      "risk_percentage": 0.0,
+      "speech_detected": false,
+      "audio_quality": {
+        "status": "unknown",
+        "duration_seconds": 0.0,
+        "rms": 0.0,
+        "snr_db": null,
+        "clipping_ratio": 0.0,
+        "voiced_ratio": 0.0
+      },
+      "evidence": {
+        "window_count": 0,
+        "high_risk_window_count": 0,
+        "analysis_age_ms": 0
+      },
+      "reason_codes": [
+        "partial_window"
+      ],
+      "model_version": "voiceguard-v1",
+      "model_backend": "wav2vec2",
+      "score_type": "uncalibrated_softmax_score",
+      "threshold_version": "threshold-v2",
+      "model_loaded": true,
+      "request_id": "dd8dee9e-b9c6-41be-856c-90a2f01f4068"
+    },
+    "verified": true
+  }
+}

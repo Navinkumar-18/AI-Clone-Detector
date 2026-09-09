@@ -69,6 +69,27 @@ audio:
     - ".opus"
 
 # ---------------------------------------------------------------------------
+# Live Analysis Contract
+# ---------------------------------------------------------------------------
+# VoiceGuard's current live-analysis contract requires a complete 4-second
+# mono, 16 kHz audio window.  This contract prevents unstable inference on
+# partial startup or timer-flush chunks.  The exact training-duration
+# distribution of the model is documented separately in
+# docs/LIVE_WINDOW_CONTRACT.md.
+#
+# These values are the single source of truth for:
+#   - backend.py  /live/analyze  (FULL_WINDOW_MS enforcement)
+#   - lib/config.dart            (Flutter capture / rolling buffer)
+#   - evaluation scripts         (compare_live_paths.py chunk size)
+#   - tests                      (test_live_window_contract.py)
+live_analysis:
+  full_window_ms: 4000
+  stride_ms: 2000
+  sample_rate: 16000
+  channels: 1
+  bits_per_sample: 16
+
+# ---------------------------------------------------------------------------
 # Default / Fallback Thresholds
 # ---------------------------------------------------------------------------
 thresholds:
@@ -103,7 +124,7 @@ server:
   maximum_concurrency: 4
   request_timeout_seconds: 30
   live_request_timeout_seconds: 15
-  rate_limit_requests_per_minute: 60
+  rate_limit_requests_per_minute: 120
 
 # ---------------------------------------------------------------------------
 # Security

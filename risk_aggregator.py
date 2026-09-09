@@ -30,7 +30,11 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
+
+if TYPE_CHECKING:
+    from voiceguard_config import VoiceGuardConfig
+
 
 
 class CallDecision(str, Enum):

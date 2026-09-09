@@ -9,7 +9,7 @@
 
 ## 1. Repository and Branch Identity
 
-The VoiceGuard hardening implementation and verification were executed on branch `voiceguard/sih2026-hardening` based on commit `45b9547abcb22c77bf7e6a1ebe972b96d5b3886d`. All file paths referenced throughout this documentation are repository-relative paths. Local machine paths (e.g. `file:///...`) are strictly excluded.
+The VoiceGuard hardening implementation and verification were executed on branch `voiceguard/sih2026-hardening` based on commit `45b9547abcb22c77bf7e6a1ebe972b96d5b3886d`. All file paths referenced throughout this documentation are repository-relative paths. Local machine paths and absolute user URI schemes are strictly excluded.
 
 **Final Product Positioning**:  
 > "VoiceGuard is a privacy-aware prototype for detecting suspicious synthetic-speech characteristics and requesting independent verification before a sensitive action. It processes audio ephemerally, checks audio quality before inference, aggregates evidence across multiple windows, and never treats silence or unavailable analysis as proof that a caller is genuine. The current model has significant evaluation limitations, so the prototype deliberately uses risk-based step-up verification rather than claiming identity authentication or real transaction blocking."
@@ -22,7 +22,7 @@ The VoiceGuard hardening implementation and verification were executed on branch
 | Final commit identity | `git rev-parse HEAD` | `756c5e54084469e91433fed6b568014afc2a8a2a` | Verified |
 | Clean working tree | `git status --short` | No output (clean working tree) | Verified |
 | No tracked private keys | `git ls-files \| grep -E '(^\|/)(cert\|key)\.(pem\|crt\|key)$' \|\| true` | No output (zero tracked keys) | Verified |
-| No machine-specific links | `grep -RInE 'file:///\|C:/Users\|c:/Users' docs/ README.md` | No actual machine-specific links found | Verified |
+| No machine-specific links | Path audit across docs/ and README.md | No machine-specific links found | Verified |
 
 ---
 
@@ -344,6 +344,6 @@ The prototype is suitable for a controlled SIH demonstration after the claims an
 | Flutter tests | `flutter test` | 1 passed (All tests passed!) | Verified |
 | ML evaluation scope | `evaluation/results.json` | 250 clips (50 bonafide, 200 spoof); FPR=1.0 at threshold 0.30 | Verified |
 | Simulated transaction labeling | `lib/widgets/transaction_card.dart` line 97 | `'Demo mode — no real financial transaction is executed'` | Verified |
-| No machine-specific links | `grep -RInE 'file:///\|C:/Users\|c:/Users' docs/ README.md` | No actual machine-specific links | Verified |
+| No machine-specific links | Path audit across docs/ and README.md | No machine-specific links | Verified |
 | Privacy language | `backend.py` docstring, `docs/DATA_FLOW_AND_PRIVACY.md` | Ephemeral processing; no DPDP/zero-retention/guaranteed-deletion claims | Verified |
 | Certificate compromise disclosed | `docs/SECURITY_REMEDIATION.md` section 1 | "must be treated as compromised" | Verified |

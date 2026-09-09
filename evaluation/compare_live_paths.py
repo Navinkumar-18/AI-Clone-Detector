@@ -107,8 +107,10 @@ def run_comparison(audio_path: str = "test_clip.wav") -> dict:
         # Path B: POST /live/analyze (Clean sequential chunks)
         # =====================================================================
         print("\n--- Running Path B: POST /live/analyze (Clean Chunks) ---")
-        chunk_size = sr * 2  # 2-second windows
-        step_size = sr * 1   # 1-second slide
+        # Use 4-second windows to match the live-analysis contract
+        # (model_config.yaml live_analysis.full_window_ms = 4000)
+        chunk_size = sr * 4   # FULL_WINDOW_MS = 4000 ms
+        step_size = sr * 2    # STRIDE_MS = 2000 ms
         aggregator_b = RiskAggregator()
 
         chunks_b = []
